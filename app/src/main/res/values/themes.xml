@@ -1,9 +1,59 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.SonuSync" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Base.Theme.SonuSync" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary Brand Color -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <!-- Secondary Brand Color -->
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Accent Brand Color -->
+        <item name="colorAccent">@color/accent</item>
+
+        <!-- Customize Theme Here -->
+        <item name="bottomNavigationStyle">@style/customBottomNavBar</item>
+        <item name="imageButtonStyle">@style/customImageButton</item>
+        <item name="floatingActionButtonStyle">@style/customFABPlayerButton</item>
+<!--        <item name="preferenceTheme">@style/AppTheme.PreferenceTheme</item>-->
     </style>
+
+    <!-- Custom Bottom Navigation Bar -->
+    <style name="customBottomNavBar" parent="Widget.MaterialComponents.BottomNavigationView.Colored">
+        <item name="itemIconTint">@color/primary</item>
+        <item name="itemTextColor">@color/primary</item>
+        <item name="backgroundTint">@color/accent_light</item>
+        <item name="itemRippleColor">@color/accent</item>
+        <item name="labelVisibilityMode">unlabeled</item>
+        <item name="itemIconSize">45dp</item>
+    </style>
+
+    <!-- Custom Image Button -->
+    <style name="customImageButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:backgroundTint">@color/white</item>
+        <item name="android:tint">@color/primary</item>
+        <item name="android:colorControlHighlight">@color/secondary</item>
+    </style>
+
+    <!-- Custom FAB Player Button -->
+    <style name="customFABPlayerButton" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="android:backgroundTint">@color/primary</item>
+        <item name="android:tint">@color/white</item>
+        <item name="rippleColor">@color/white</item>
+    </style>
+
+<!--    &lt;!&ndash; Item Background &ndash;&gt;-->
+<!--    <style name="musicItemBackground">-->
+<!--        <item name="android:background">@drawable/item_background_day</item>-->
+<!--        <item name="android:textColor">@color/black</item>-->
+<!--    </style>-->
+
+<!--    &lt;!&ndash; Preference Settings Theme &ndash;&gt;-->
+<!--    <style name="AppTheme.PreferenceTheme" parent="PreferenceThemeOverlay">-->
+<!--        <item name="android:colorAccent">@color/primary</item>-->
+<!--        <item name="android:progressTint">@color/primary</item>-->
+<!--        <item name="trackTint">@color/accent</item>-->
+<!--        <item name="thumbTint">@color/primary</item>-->
+<!--    </style>-->
 
     <style name="Theme.SonuSync" parent="Base.Theme.SonuSync" />
 </resources>
