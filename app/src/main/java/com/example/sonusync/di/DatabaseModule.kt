@@ -26,6 +26,7 @@ object DatabaseModule {
     }
 
     @Provides
+    @Singleton
     fun providesMusicDao(musicDatabase: MusicDatabase): MusicDao {
         return musicDatabase.musicDao()
     }

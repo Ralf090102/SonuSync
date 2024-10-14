@@ -12,7 +12,7 @@ interface MusicDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(musicList: List<Music>)
 
-    @Query("SELECT * FROM music")
+    @Query("SELECT * FROM music ORDER BY title ASC")
     suspend fun getAllMusic(): List<Music>
 
     @Query("SELECT * FROM music WHERE title LIKE :title LIMIT 1")
