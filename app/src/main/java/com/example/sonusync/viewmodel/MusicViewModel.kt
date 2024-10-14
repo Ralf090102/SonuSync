@@ -1,9 +1,10 @@
-package com.example.sonusync.data.model
+package com.example.sonusync.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sonusync.data.model.Music
 import com.example.sonusync.data.repository.MusicRepository
 import kotlinx.coroutines.launch
 

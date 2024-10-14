@@ -1,6 +1,6 @@
 package com.example.sonusync.di
 
-import com.example.sonusync.data.model.MusicViewModel
+import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.data.repository.MusicRepository
 import dagger.Module
 import dagger.Provides
