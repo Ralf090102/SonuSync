@@ -1,7 +1,7 @@
 package com.example.sonusync.di
 
 import android.content.ContentResolver
-import com.example.sonusync.data.local.MusicDao
+import com.example.sonusync.data.dao.MusicDao
 import com.example.sonusync.data.repository.MusicRepository
 import dagger.Module
 import dagger.Provides

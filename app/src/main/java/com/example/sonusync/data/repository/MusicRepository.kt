@@ -3,8 +3,8 @@ package com.example.sonusync.data.repository
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.MediaStore
-import com.example.sonusync.data.local.MusicDao
-import com.example.sonusync.domain.model.Music
+import com.example.sonusync.data.dao.MusicDao
+import com.example.sonusync.data.model.Music
 import javax.inject.Inject
 
 class MusicRepository @Inject constructor(

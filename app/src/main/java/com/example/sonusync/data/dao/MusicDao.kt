@@ -1,10 +1,10 @@
-package com.example.sonusync.data.local
+package com.example.sonusync.data.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.example.sonusync.domain.model.Music
+import com.example.sonusync.data.model.Music
 
 
 @Dao

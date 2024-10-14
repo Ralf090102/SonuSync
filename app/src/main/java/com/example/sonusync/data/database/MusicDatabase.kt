@@ -1,10 +1,11 @@
-package com.example.sonusync.data.local
+package com.example.sonusync.data.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.sonusync.domain.model.Music
+import com.example.sonusync.data.dao.MusicDao
+import com.example.sonusync.data.model.Music
 
 @Database(entities = [Music::class], version = 1, exportSchema = false)
 abstract  class MusicDatabase : RoomDatabase() {
