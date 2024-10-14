@@ -14,16 +14,17 @@ import com.example.sonusync.ui.music.library.ArtistsFragment
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import javax.inject.Inject
 
 class LibraryFragment : Fragment(R.layout.fragment_library){
     private lateinit var viewPager: ViewPager2
     private lateinit var tabLayout: TabLayout
-    private lateinit var musicViewModel: MusicViewModel
+
+    @Inject
+    lateinit var musicViewModel: MusicViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?){
         super.onViewCreated(view, savedInstanceState)
-
-        musicViewModel = ViewModelProvider(this)[MusicViewModel::class.java]
 
         viewPager = view.findViewById(R.id.view_pager)
         tabLayout = view.findViewById(R.id.tab_layout)
