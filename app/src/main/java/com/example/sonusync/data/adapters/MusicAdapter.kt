@@ -1,6 +1,5 @@
 package com.example.sonusync.data.adapters
 
-import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,9 +9,10 @@ import com.example.sonusync.data.model.Music
 import com.example.sonusync.data.repository.MusicRepository
 import javax.inject.Inject
 
-class MusicAdapter @Inject constructor() : RecyclerView.Adapter<MusicAdapter.MusicViewHolder>() {
 
+class MusicAdapter @Inject constructor(
     private var musics: List<Music> = listOf()
+) : RecyclerView.Adapter<MusicAdapter.MusicViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_music, parent, false)
@@ -32,7 +32,6 @@ class MusicAdapter @Inject constructor() : RecyclerView.Adapter<MusicAdapter.Mus
         }
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     fun setMusicList(musicList: List<Music>) {
         this.musics = musicList
         notifyDataSetChanged()

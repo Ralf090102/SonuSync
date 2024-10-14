@@ -13,6 +13,6 @@ object AdapterModule {
 
     @Provides
     fun provideMusicAdapter(): MusicAdapter {
-        return MusicAdapter(emptyList())
+        return MusicAdapter()
     }
 }

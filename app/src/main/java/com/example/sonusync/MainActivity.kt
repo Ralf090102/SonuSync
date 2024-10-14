@@ -20,7 +20,6 @@ import com.example.sonusync.ui.music.SearchFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var musicViewModel: MusicViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,10 +46,10 @@ class MainActivity : AppCompatActivity() {
                     loadFragment(LibraryFragment())
                     true
                 }
-//                R.id.miSearch -> {
-//                    loadFragment(SearchFragment())
-//                    true
-//                }
+                R.id.miSearch -> {
+                    loadFragment(SearchFragment())
+                    true
+                }
 //                R.id.miSettings -> {
 //                    loadFragment(SettingsFragment())
 //                    true
@@ -96,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                //musicViewModel.loadMusic()
+                //Will Implement Later
             } else {
                 Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
             }
