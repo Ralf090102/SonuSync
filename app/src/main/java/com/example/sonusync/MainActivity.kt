@@ -17,9 +17,15 @@ import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.databinding.ActivityMainBinding
 import com.example.sonusync.ui.music.LibraryFragment
 import com.example.sonusync.ui.music.SearchFragment
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+
+    @Inject
+    lateinit var musicViewModel: MusicViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +34,11 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         hideStatusBar()
-        if (!checkPermission()) { requestPermission() }
+        if (!checkPermission()) {
+            requestPermission()
+        } else {
+            musicViewModel.loadMusic()
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -94,7 +104,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                //Will Implement Later
+                musicViewModel.loadMusic()
             } else {
                 Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
             }
