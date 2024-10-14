@@ -16,7 +16,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicClickListener {
-    private lateinit var adapter: MusicAdapter
 
     @Inject
     lateinit var musicAdapter: MusicAdapter
@@ -28,12 +27,11 @@ class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicClickListen
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = musicAdapter
         val recyclerView: RecyclerView = view.findViewById(R.id.songsRecyclerView)
-        recyclerView.adapter = adapter
+        recyclerView.adapter = musicAdapter
 
         musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-            adapter.submitList(musicList)
+            musicAdapter.submitList(musicList)
         }
     }
 
