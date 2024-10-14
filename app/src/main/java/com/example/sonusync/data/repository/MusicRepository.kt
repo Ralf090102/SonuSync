@@ -6,7 +6,9 @@ import android.provider.MediaStore
 import com.example.sonusync.data.dao.MusicDao
 import com.example.sonusync.data.model.Music
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class MusicRepository @Inject constructor(
     private val contentResolver: ContentResolver,
     private val musicDao: MusicDao

@@ -23,19 +23,13 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private val musicViewModel: MusicViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         enableEdgeToEdge()
 
         hideStatusBar()
-        if (!checkPermission()) {
-            requestPermission()
-        } else {
-            musicViewModel.loadMusic()
-        }
+        if (!checkPermission()) { requestPermission() }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -104,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                musicViewModel.loadMusic()
+                //WIP
             } else {
                 Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
             }
