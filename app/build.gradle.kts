@@ -74,7 +74,6 @@ dependencies {
     kapt(libs.androidx.room.compiler)
 }
 
-// Allow references to generated code
 kapt {
     arguments {
         arg("room.schemaLocation", "$projectDir/schemas")
