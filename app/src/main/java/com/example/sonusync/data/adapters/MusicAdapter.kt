@@ -12,11 +12,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
-import com.example.sonusync.ui.listeners.MusicClickListener
 import javax.inject.Inject
 
 
-class MusicAdapter @Inject constructor(
+class MusicAdapter(
     private val musicClickListener: MusicClickListener
 ) : ListAdapter<Music, MusicAdapter.MusicViewHolder>(MusicDiffCallback()) {
 
@@ -69,5 +68,9 @@ class MusicAdapter @Inject constructor(
         override fun areContentsTheSame(oldItem: Music, newItem: Music): Boolean {
             return oldItem == newItem
         }
+    }
+
+    interface MusicClickListener {
+        fun onMusicClick(music: Music)
     }
 }

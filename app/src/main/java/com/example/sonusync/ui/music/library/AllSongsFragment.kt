@@ -8,25 +8,23 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
 import com.example.sonusync.data.model.Music
-import com.example.sonusync.ui.listeners.MusicClickListener
 import com.example.sonusync.ui.music.MusicActivity
 import com.example.sonusync.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicClickListener {
-
-    @Inject
-    lateinit var musicAdapter: MusicAdapter
+class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicAdapter.MusicClickListener {
 
     @Inject
     lateinit var musicViewModel: MusicViewModel
 
+    private lateinit var musicAdapter: MusicAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        musicAdapter = MusicAdapter(this)
         val recyclerView: RecyclerView = view.findViewById(R.id.songsRecyclerView)
         recyclerView.adapter = musicAdapter
 

@@ -14,8 +14,10 @@ import com.example.sonusync.ui.music.library.ArtistsFragment
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+@AndroidEntryPoint
 class LibraryFragment : Fragment(R.layout.fragment_library){
     private lateinit var viewPager: ViewPager2
     private lateinit var tabLayout: TabLayout
