@@ -15,10 +15,7 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideMusicRepository(
-        contentResolver: ContentResolver,
-        musicDao: MusicDao
-    ): MusicRepository {
+    fun provideMusicRepository(contentResolver: ContentResolver, musicDao: MusicDao): MusicRepository {
         return MusicRepository(contentResolver, musicDao)
     }
 }
