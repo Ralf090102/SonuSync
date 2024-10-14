@@ -72,7 +72,8 @@ class MusicRepository @Inject constructor(
                     discNumber = discNumber,
                     year = year,
                     duration = duration,
-                    path = data
+                    path = data,
+                    albumArtUri = albumArtUri
                 )
                 musicList.add(music)
             }

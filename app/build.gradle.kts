@@ -71,6 +71,10 @@ dependencies {
     implementation(libs.androidx.hilt.lifecycle.viewmodel)
     kapt(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    // Room dependencies
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
 }
 
 // Allow references to generated code
