@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        binding.bottomNav.setOnApplyWindowInsetsListener(null)
+        binding.bottomNav.setPadding(0,0,0,0)
 
 
     }
