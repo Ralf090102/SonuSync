@@ -7,6 +7,7 @@ import com.example.sonusync.data.database.MusicDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -16,9 +17,9 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideMusicDatabase(appContext: Context): MusicDatabase {
+    fun provideMusicDatabase(@ApplicationContext context: Context): MusicDatabase {
         return Room.databaseBuilder(
-            appContext,
+            context,
             MusicDatabase::class.java,
             "music_database"
         ).build()
