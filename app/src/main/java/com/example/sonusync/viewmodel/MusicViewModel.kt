@@ -4,15 +4,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sonusync.data.dao.MusicDao
 import com.example.sonusync.data.model.Music
-import com.example.sonusync.data.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MusicViewModel  @Inject constructor(
-    private val repository: MusicRepository
+    private val musicDao: MusicDao
 ) : ViewModel() {
 
     private val _musicList = MutableLiveData<List<Music>>()
@@ -20,9 +20,27 @@ class MusicViewModel  @Inject constructor(
 
     fun loadMusic(){
         viewModelScope.launch {
-            val musicFromStorage = repository.getMusicFromStorage()
-            _musicList.value = musicFromStorage
-            repository.saveMusicListToLocal(musicFromStorage)
+            _musicList.value = musicDao.getAllMusic()
+        }
+    }
+
+    fun insertMusic(musicList: List<Music>) {
+        viewModelScope.launch {
+            musicDao.insertAll(musicList)
+            loadMusic()
+        }
+    }
+
+    fun findMusic(title: String) {
+        viewModelScope.launch {
+            val music = musicDao.findMusicByTitle(title)
+        }
+    }
+
+    fun deleteMusic(musicId: Long) {
+        viewModelScope.launch {
+            musicDao.deleteMusic(musicId)
+            loadMusic()
         }
     }
 }
