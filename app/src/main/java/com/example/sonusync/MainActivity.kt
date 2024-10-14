@@ -6,22 +6,29 @@ import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
 import com.example.sonusync.viewmodel.MusicViewModel
-import com.example.sonusync.databinding.ActivityMainBinding
+import com.example.sonusync.ui.music.LibraryFragment
+import com.example.sonusync.ui.music.SearchFragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
-    private lateinit var musicViewModel: MusicViewModel
+
+    private val musicViewModel: MusicViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
         enableEdgeToEdge()
-        setContentView(binding.root)
 
         hideStatusBar()
         if (!checkPermission()) { requestPermission() }
@@ -32,7 +39,37 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
 
+        bottomNav.setOnApplyWindowInsetsListener(null)
+        bottomNav.setPadding(0,0,0,0)
+
+        loadFragment(LibraryFragment())
+
+        bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.miLibrary -> {
+                    loadFragment(LibraryFragment())
+                    true
+                }
+                R.id.miSearch -> {
+                    loadFragment(SearchFragment())
+                    true
+                }
+                R.id.miSettings -> {
+                    //Will Implement Later should be an Activity
+                    true
+                }
+                else -> false
+            }
+        }
+
+    }
+
+    private fun loadFragment(fragment: Fragment) {
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.flFragment, fragment)
+        transaction.commit()
     }
 
     private fun hideStatusBar() {
