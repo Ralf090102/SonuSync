@@ -2,8 +2,8 @@ package com.example.sonusync.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.sonusync.data.local.MusicDao
-import com.example.sonusync.data.local.MusicDatabase
+import com.example.sonusync.data.dao.MusicDao
+import com.example.sonusync.data.database.MusicDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

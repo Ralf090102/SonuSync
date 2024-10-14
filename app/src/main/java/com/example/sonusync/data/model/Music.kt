@@ -1,4 +1,4 @@
-package com.example.sonusync.domain.model
+package com.example.sonusync.data.model
 
 data class Music (
     val id: Long,

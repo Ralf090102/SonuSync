@@ -8,23 +8,23 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var musicViewModel: MusicViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(binding.root)
-        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
 
-        if (!checkPermission()) {
-            requestPermission()
-        }
+        hideStatusBar()
+        if (!checkPermission()) { requestPermission() }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -33,6 +33,14 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+    }
+
+    private fun hideStatusBar() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        } else {
+            window.insetsController?.hide(WindowInsetsCompat.Type.statusBars())
+        }
     }
 
     private fun checkPermission(): Boolean {
@@ -55,10 +63,8 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                // Permission granted, proceed with media access
-                // For example, start loading songs here
-            }
-            else {
+                musicViewModel.loadMusic()
+            } else {
                 Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
             }
         }
