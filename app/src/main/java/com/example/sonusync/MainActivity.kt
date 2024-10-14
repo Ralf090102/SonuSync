@@ -12,25 +12,22 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import com.example.sonusync.viewmodel.MusicViewModel
-import com.example.sonusync.databinding.ActivityMainBinding
 import com.example.sonusync.ui.music.LibraryFragment
 import com.example.sonusync.ui.music.SearchFragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
 
     @Inject
     lateinit var musicViewModel: MusicViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_main)
         enableEdgeToEdge()
 
         hideStatusBar()
@@ -45,12 +42,15 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        binding.bottomNav.setOnApplyWindowInsetsListener(null)
-        binding.bottomNav.setPadding(0,0,0,0)
+
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+
+        bottomNav.setOnApplyWindowInsetsListener(null)
+        bottomNav.setPadding(0,0,0,0)
 
         loadFragment(LibraryFragment())
 
-        binding.bottomNav.setOnItemSelectedListener { item ->
+        bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.miLibrary -> {
                     loadFragment(LibraryFragment())
