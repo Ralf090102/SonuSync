@@ -50,11 +50,10 @@ class MainActivity : AppCompatActivity() {
                     loadFragment(SearchFragment())
                     true
                 }
-//                R.id.miSettings -> {
-//                    loadFragment(SettingsFragment())
-//                    true
-//                }
-
+                R.id.miSettings -> {
+                    //Will Implement Later should be an Activity
+                    true
+                }
                 else -> false
             }
         }

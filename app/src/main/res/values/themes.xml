@@ -41,11 +41,11 @@
         <item name="rippleColor">@color/white</item>
     </style>
 
-<!--    &lt;!&ndash; Item Background &ndash;&gt;-->
-<!--    <style name="musicItemBackground">-->
-<!--        <item name="android:background">@drawable/item_background_day</item>-->
-<!--        <item name="android:textColor">@color/black</item>-->
-<!--    </style>-->
+    <!-- Item Background -->
+    <style name="musicItemBackground">
+        <item name="android:background">@drawable/item_background_day</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
 
 <!--    &lt;!&ndash; Preference Settings Theme &ndash;&gt;-->
 <!--    <style name="AppTheme.PreferenceTheme" parent="PreferenceThemeOverlay">-->

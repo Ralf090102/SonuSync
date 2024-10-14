@@ -8,4 +8,8 @@
     <string name="frag_lib_all_songs">All Songs</string>
     <string name="frag_lib_albums">Albums</string>
     <string name="frag_lib_artists">Artists</string>
+
+    <string name="default_title">Unknown Title</string>
+    <string name="default_artist">Unknown Artist</string>
+    <string name="default_duration">xx:xx</string>
 </resources>
