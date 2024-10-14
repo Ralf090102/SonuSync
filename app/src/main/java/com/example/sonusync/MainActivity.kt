@@ -11,8 +11,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.databinding.ActivityMainBinding
+import com.example.sonusync.ui.music.LibraryFragment
+import com.example.sonusync.ui.music.SearchFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -20,8 +24,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        enableEdgeToEdge()
 
         hideStatusBar()
         if (!checkPermission()) { requestPermission() }
@@ -34,7 +39,33 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNav.setOnApplyWindowInsetsListener(null)
         binding.bottomNav.setPadding(0,0,0,0)
 
+        loadFragment(LibraryFragment())
 
+        binding.bottomNav.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.miLibrary -> {
+                    loadFragment(LibraryFragment())
+                    true
+                }
+//                R.id.miSearch -> {
+//                    loadFragment(SearchFragment())
+//                    true
+//                }
+//                R.id.miSettings -> {
+//                    loadFragment(SettingsFragment())
+//                    true
+//                }
+
+                else -> false
+            }
+        }
+
+    }
+
+    private fun loadFragment(fragment: Fragment) {
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.flFragment, fragment)
+        transaction.commit()
     }
 
     private fun hideStatusBar() {
@@ -65,7 +96,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                musicViewModel.loadMusic()
+                //musicViewModel.loadMusic()
             } else {
                 Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
             }

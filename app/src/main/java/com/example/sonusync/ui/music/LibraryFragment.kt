@@ -1,0 +1,49 @@
+package com.example.sonusync.ui.music
+
+import android.os.Bundle
+import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import com.example.sonusync.R
+import com.example.sonusync.ui.music.library.AlbumsFragment
+import com.example.sonusync.ui.music.library.AllSongsFragment
+import com.example.sonusync.ui.music.library.ArtistsFragment
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+
+class LibraryFragment : Fragment(R.layout.fragment_library){
+    private lateinit var viewPager: ViewPager2
+    private lateinit var tabLayout: TabLayout
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?){
+        super.onViewCreated(view, savedInstanceState)
+
+        viewPager = view.findViewById(R.id.view_pager)
+        tabLayout = view.findViewById(R.id.tab_layout)
+
+        viewPager.adapter = LibraryPagerAdapter(this)
+
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = when (position) {
+                0 -> "All Songs"
+                1 -> "Artists"
+                2 -> "Albums"
+                else -> null
+            }
+        }.attach()
+    }
+
+    private inner class LibraryPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment){
+        override fun getItemCount(): Int = 3
+
+        override fun createFragment(position: Int): Fragment {
+            return when (position) {
+                0 -> AllSongsFragment()
+                1 -> ArtistsFragment()
+                2 -> AlbumsFragment()
+                else -> throw IllegalStateException("Unexpected Position -> $position <-")
+            }
+        }
+    }
+}

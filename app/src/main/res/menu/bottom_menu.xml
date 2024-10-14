@@ -7,7 +7,7 @@
         android:icon="@drawable/ic_music_library"/>
 
     <item
-        android:id="@+id/miMusic"
+        android:id="@+id/miSearch"
         android:title="@string/icon_search"
         android:icon="@drawable/ic_music_search"/>
 
