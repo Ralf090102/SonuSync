@@ -1,7 +1,15 @@
 package com.example.sonusync.ui.music.library
 
+import android.os.Bundle
+import android.view.View
 import androidx.fragment.app.Fragment
-import com.example.sonusync.R
+import com.example.sonusync.data.adapters.MusicAdapter
+import com.example.sonusync.viewmodel.MusicViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-class AllSongsFragment : Fragment(R.layout.fragment_all_songs) {
+@AndroidEntryPoint
+class AllSongsFragment : Fragment() {
+
+
 }

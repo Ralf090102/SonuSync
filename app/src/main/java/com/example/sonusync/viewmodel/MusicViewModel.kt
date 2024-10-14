@@ -6,9 +6,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sonusync.data.model.Music
 import com.example.sonusync.data.repository.MusicRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MusicViewModel(private val repository: MusicRepository) : ViewModel() {
+@HiltViewModel
+class MusicViewModel  @Inject constructor(
+    private val repository: MusicRepository
+) : ViewModel() {
+
     private val _musicList = MutableLiveData<List<Music>>()
     val musicList: LiveData<List<Music>> get() = _musicList
 
