@@ -15,5 +15,6 @@ data class Music (
     val year: Int,
     val duration: Long,
     val path: String,
-    val albumArtUri: String?
+    val albumArtUri: String?,
+    val uri: String
 )

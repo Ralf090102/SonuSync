@@ -1,6 +1,7 @@
 package com.example.sonusync.data.repository
 
 import android.content.ContentResolver
+import android.content.ContentUris
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
@@ -66,6 +67,7 @@ class MusicRepository @Inject constructor(
                         val albumId = it.getLong(albumIdColumn)
 
                         val albumArtUri = getAlbumArtUri(albumId)
+                        val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
 
                         val music = Music(
                             id = id,
@@ -78,7 +80,8 @@ class MusicRepository @Inject constructor(
                             year = year,
                             duration = duration,
                             path = data,
-                            albumArtUri = albumArtUri
+                            albumArtUri = albumArtUri,
+                            uri = contentUri.toString()
                         )
 
                         musicList.add(music)
