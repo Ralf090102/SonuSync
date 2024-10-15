@@ -59,12 +59,20 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
 
-    //ViewModel Compose
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-
     //Dagger-Hilt
     implementation(libs.hilt.android.v2511)
     kapt(libs.hilt.android.compiler.v2511)
+
+    // ViewModel and LiveData
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+
+    // Fragment KTX for improved fragment handling
+    implementation(libs.androidx.fragment.ktx)
+
+    // Jetpack Compose ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
     kapt(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
