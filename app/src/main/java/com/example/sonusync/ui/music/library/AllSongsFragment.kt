@@ -38,6 +38,7 @@ class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicAdapter.Mus
                 putString("MUSIC_ARTIST", music.artist)
                 putLong("MUSIC_DURATION", music.duration)
                 putString("MUSIC_ALBUM_COVER", music.albumArtUri)
+                putString("MUSIC_URI", music.uri)
             }
         }
 
