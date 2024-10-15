@@ -1,6 +1,5 @@
 package com.example.sonusync.ui.music.library
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
@@ -43,8 +42,7 @@ class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicAdapter.Mus
         }
 
         parentFragmentManager.beginTransaction()
-            .replace(R.id.flFragment, musicFragment)
-            .addToBackStack(null)
+            .replace(R.id.flMusic, musicFragment)
             .commit()
     }
 

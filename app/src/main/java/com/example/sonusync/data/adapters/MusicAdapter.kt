@@ -2,7 +2,6 @@ package com.example.sonusync.data.adapters
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,9 +41,6 @@ class MusicAdapter(
             artistTextView.text = music.artist
             durationTextView.text = formatDuration(music.duration)
             val albumArt = Uri.parse(music.albumArtUri)
-
-            Log.d("MusicAdapter", "Album art String: ${music.albumArtUri}")
-            Log.d("MusicAdapter", "Album art URI: $albumArt")
 
             albumCoverImageView.load(albumArt) {
                 placeholder(R.drawable.default_album_cover)
