@@ -52,8 +52,8 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.ui)
 
-    //Glide
-    implementation(libs.glide)
+    //Coil
+    implementation(libs.coil)
 
     //Coroutines
     implementation(libs.kotlinx.coroutines.core)

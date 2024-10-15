@@ -1,6 +1,5 @@
 package com.example.sonusync.di
 
-import com.example.sonusync.data.dao.MusicDao
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.data.repository.MusicRepository
 import dagger.Module
@@ -14,7 +13,7 @@ object ViewModelModule {
 
 
     @Provides
-    fun provideMusicViewModel(musicDao: MusicDao): MusicViewModel {
-        return MusicViewModel(musicDao)
+    fun provideMusicViewModel(musicRepository: MusicRepository): MusicViewModel {
+        return MusicViewModel(musicRepository)
     }
 }

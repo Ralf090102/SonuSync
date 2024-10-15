@@ -3,6 +3,7 @@ package com.example.sonusync.data.repository
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import com.example.sonusync.data.dao.MusicDao
 import com.example.sonusync.data.model.Music
 import javax.inject.Inject
@@ -49,49 +50,72 @@ class MusicRepository @Inject constructor(
             val dataColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
             val albumIdColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
 
-            while (it.moveToNext()) {
-                val id = it.getLong(idColumn)
-                val title = it.getString(titleColumn)
-                val artist = it.getString(artistColumn)
-                val albumArtist = it.getString(albumArtistColumn)
-                val album = it.getString(albumColumn)
-                val track = it.getInt(trackColumn)
-                val discNumber = it.getInt(discNumberColumn)
-                val year = it.getInt(yearColumn)
-                val duration = it.getLong(durationColumn)
-                val data = it.getString(dataColumn)
-                val albumId = it.getLong(albumIdColumn)
+            try {
+                while (it.moveToNext()) {
+                    try {
+                        val id = it.getLong(idColumn)
+                        val title = it.getString(titleColumn) ?: "Unknown Title"
+                        val artist = it.getString(artistColumn) ?: "Unknown Artist"
+                        val albumArtist = it.getString(albumArtistColumn) ?: "Unknown Album Artist"
+                        val album = it.getString(albumColumn) ?: "Unknown Album"
+                        val track = it.getInt(trackColumn)
+                        val discNumber = it.getInt(discNumberColumn)
+                        val year = it.getInt(yearColumn)
+                        val duration = it.getLong(durationColumn)
+                        val data = it.getString(dataColumn) ?: ""
+                        val albumId = it.getLong(albumIdColumn)
 
-                val albumArtUri = getAlbumArtUri(albumId)
+                        val albumArtUri = getAlbumArtUri(albumId)
 
-                val music = Music(
-                    id = id,
-                    title = title,
-                    artist = artist,
-                    albumArtist = albumArtist,
-                    album = album,
-                    trackNumber = track,
-                    discNumber = discNumber,
-                    year = year,
-                    duration = duration,
-                    path = data,
-                    albumArtUri = albumArtUri
-                )
-                musicList.add(music)
+                        val music = Music(
+                            id = id,
+                            title = title,
+                            artist = artist,
+                            albumArtist = albumArtist,
+                            album = album,
+                            trackNumber = track,
+                            discNumber = discNumber,
+                            year = year,
+                            duration = duration,
+                            path = data,
+                            albumArtUri = albumArtUri
+                        )
+
+                        musicList.add(music)
+
+                    } catch (e: Exception) {
+                        Log.e("MusicRepository", "Error retrieving music data: ${e.message}", e)
+                    }
+
+                }
+
+            } catch (e: Exception) {
+                Log.e("MusicRepository", "Error iterating over music cursor: ${e.message}", e)
             }
+
         }
+
         return musicList
     }
-    private fun getAlbumArtUri(albumId: Long): String? {
+
+    private fun getAlbumArtUri(albumId: Long): String {
         val uri: Uri = Uri.withAppendedPath(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId.toString())
         return uri.toString()
     }
 
-    suspend fun getLocalMusicList(): List<Music> {
-        return musicDao.getAllMusic()
+    suspend fun getMusicListFromLocal(): List<Music> {
+        return musicDao.getMusicListFromLocal()
     }
 
     suspend fun saveMusicListToLocal(musicList: List<Music>) {
-        musicDao.insertAll(musicList)
+        musicDao.saveMusicListToLocal(musicList)
+    }
+
+    suspend fun findMusicByTitle(title: String): Music {
+        return musicDao.findMusicByTitle(title)
+    }
+
+    suspend fun deleteMusic(musicId: Long) {
+        musicDao.deleteMusic(musicId)
     }
 }

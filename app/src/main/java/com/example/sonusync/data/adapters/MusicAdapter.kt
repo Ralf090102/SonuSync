@@ -1,6 +1,8 @@
 package com.example.sonusync.data.adapters
 
 import android.annotation.SuppressLint
+import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,10 +11,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import coil.load
 import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
-import javax.inject.Inject
 
 
 class MusicAdapter(
@@ -39,13 +40,16 @@ class MusicAdapter(
         fun bind(music: Music, musicClickListener: MusicClickListener) {
             titleTextView.text = music.title
             artistTextView.text = music.artist
-
             durationTextView.text = formatDuration(music.duration)
+            val albumArt = Uri.parse(music.albumArtUri)
 
-            Glide.with(itemView.context)
-                .load(music.albumArtUri)
-                .placeholder(R.drawable.default_album_cover)
-                .into(albumCoverImageView)
+            Log.d("MusicAdapter", "Album art String: ${music.albumArtUri}")
+            Log.d("MusicAdapter", "Album art URI: $albumArt")
+
+            albumCoverImageView.load(albumArt) {
+                placeholder(R.drawable.default_album_cover)
+                error(R.drawable.default_album_cover)
+            }
 
             itemView.setOnClickListener {
                 musicClickListener.onMusicClick(music)

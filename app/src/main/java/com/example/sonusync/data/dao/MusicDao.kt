@@ -10,10 +10,10 @@ import com.example.sonusync.data.model.Music
 @Dao
 interface MusicDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(musicList: List<Music>)
+    suspend fun saveMusicListToLocal(musicList: List<Music>)
 
     @Query("SELECT * FROM music ORDER BY title ASC")
-    suspend fun getAllMusic(): List<Music>
+    suspend fun getMusicListFromLocal(): List<Music>
 
     @Query("SELECT * FROM music WHERE title LIKE :title LIMIT 1")
     suspend fun findMusicByTitle(title: String): Music
