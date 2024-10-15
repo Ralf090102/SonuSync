@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
 import com.example.sonusync.data.model.Music
-import com.example.sonusync.ui.music.MusicActivity
+import com.example.sonusync.ui.music.MusicFragment
 import com.example.sonusync.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -33,13 +33,19 @@ class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicAdapter.Mus
     }
 
     override fun onMusicClick(music: Music) {
-        val intent =  Intent(activity, MusicActivity::class.java).apply {
-            putExtra("MUSIC_TITLE", music.title)
-            putExtra("MUSIC_ARTIST", music.artist)
-            putExtra("MUSIC_DURATION", music.duration)
-            putExtra("MUSIC_ALBUM_COVER", music.albumArtUri)
+        val musicFragment = MusicFragment().apply {
+            arguments = Bundle().apply {
+                putString("MUSIC_TITLE", music.title)
+                putString("MUSIC_ARTIST", music.artist)
+                putLong("MUSIC_DURATION", music.duration)
+                putString("MUSIC_ALBUM_COVER", music.albumArtUri)
+            }
         }
-        startActivity(intent)
+
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.flFragment, musicFragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     fun updateMusic(musicList: List<Music>) {

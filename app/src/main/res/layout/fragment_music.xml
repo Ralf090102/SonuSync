@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/sivAlbumCover"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:layout_marginTop="40dp"
+        android:src="@drawable/default_album_cover"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:strokeColor="?attr/colorPrimary"
+        app:strokeWidth="2dp" />
+
+    <TextView
+        android:id="@+id/tvMusicTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:text="@string/default_title"
+        android:textAlignment="center"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sivAlbumCover" />
+
+    <TextView
+        android:id="@+id/tvMusicArtist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="@string/default_artist"
+        android:textAlignment="center"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvMusicTitle" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabMusic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:contentDescription="@string/play_pause_fab"
+        android:src="@drawable/ic_music_pause"
+        app:layout_constraintEnd_toStartOf="@+id/ibNext"
+        app:layout_constraintStart_toEndOf="@+id/ibPrev"
+        app:layout_constraintTop_toBottomOf="@+id/tvMusicArtist"
+        app:maxImageSize="32dp" />
+
+    <ImageButton
+        android:id="@+id/ibRepeat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:contentDescription="@string/repeat_btn"
+        android:src="@drawable/ic_music_repeat_disabled"
+        app:layout_constraintEnd_toStartOf="@+id/ibPrev"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvMusicArtist" />
+
+    <ImageButton
+        android:id="@+id/ibShuffle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:contentDescription="@string/shuffle_btn"
+        android:src="@drawable/ic_music_shuffle_off"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/ibNext"
+        app:layout_constraintTop_toBottomOf="@+id/tvMusicArtist" />
+
+    <ImageButton
+        android:id="@+id/ibPrev"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:contentDescription="@string/prev_btn"
+        android:src="@drawable/ic_music_prev"
+        app:layout_constraintEnd_toStartOf="@+id/fabMusic"
+        app:layout_constraintStart_toEndOf="@+id/ibRepeat"
+        app:layout_constraintTop_toBottomOf="@+id/tvMusicArtist" />
+
+    <ImageButton
+        android:id="@+id/ibNext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:contentDescription="@string/next_btn"
+        android:src="@drawable/ic_music_next"
+        app:layout_constraintEnd_toStartOf="@+id/ibShuffle"
+        app:layout_constraintStart_toEndOf="@+id/fabMusic"
+        app:layout_constraintTop_toBottomOf="@+id/tvMusicArtist" />
+
+    <SeekBar
+        android:id="@+id/sbPlayback"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:progressTint="?attr/colorPrimary"
+        android:thumbTint="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/fabMusic" />
+
+    <TextView
+        android:id="@+id/tvCurrentTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/default_duration"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sbPlayback" />
+
+    <TextView
+        android:id="@+id/tvTotalTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/default_duration"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sbPlayback" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

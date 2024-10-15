@@ -12,4 +12,10 @@
     <string name="default_title">Unknown Title</string>
     <string name="default_artist">Unknown Artist</string>
     <string name="default_duration">xx:xx</string>
+
+    <string name="play_pause_fab">Play/Pause Button</string>
+    <string name="repeat_btn">Repeat Button</string>
+    <string name="shuffle_btn">Shuffle Button</string>
+    <string name="next_btn">Next Button</string>
+    <string name="prev_btn">Previous Button</string>
 </resources>
