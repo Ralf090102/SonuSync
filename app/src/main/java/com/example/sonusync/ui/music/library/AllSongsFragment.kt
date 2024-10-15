@@ -9,15 +9,8 @@ import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
 import com.example.sonusync.data.model.Music
 import com.example.sonusync.ui.music.MusicFragment
-import com.example.sonusync.viewmodel.MusicViewModel
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicAdapter.MusicClickListener {
-
-    @Inject
-    lateinit var musicViewModel: MusicViewModel
 
     private lateinit var musicAdapter: MusicAdapter
 
