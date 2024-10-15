@@ -1,5 +1,6 @@
 [versions]
 agp = "8.6.1"
+coil = "2.7.0"
 glide = "4.16.0"
 hiltAndroidCompiler = "2.51.1"
 hiltAndroidVersion = "2.51.1"
@@ -10,7 +11,7 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
-kotlinxCoroutinesCore = "1.7.3"
+kotlinxCoroutinesCore = "1.8.1"
 lifecycleViewmodelCompose = "2.8.6"
 material = "1.12.0"
 activity = "1.9.2"
@@ -29,7 +30,7 @@ androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "medi
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 hilt-android-compiler-v2511 = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
 hilt-android-v2511 = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
