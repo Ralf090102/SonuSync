@@ -1,46 +1,67 @@
 package com.example.sonusync.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sonusync.data.dao.MusicDao
 import com.example.sonusync.data.model.Music
+import com.example.sonusync.data.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MusicViewModel  @Inject constructor(
-    private val musicDao: MusicDao
+    private val musicRepository: MusicRepository
 ) : ViewModel() {
 
     private val _musicList = MutableLiveData<List<Music>>()
     val musicList: LiveData<List<Music>> get() = _musicList
 
-    fun loadMusic(){
+    fun insertMusic() {
         viewModelScope.launch {
-            _musicList.value = musicDao.getAllMusic()
+            try {
+                val musicList = musicRepository.getMusicFromStorage()
+                musicRepository.saveMusicListToLocal(musicList)
+                loadMusic()
+            } catch (e: Exception) {
+                Log.e("MusicViewModel", "Error inserting music", e)
+            }
         }
     }
 
-    fun insertMusic(musicList: List<Music>) {
+    fun loadMusic(){
         viewModelScope.launch {
-            musicDao.insertAll(musicList)
-            loadMusic()
+            try {
+                val music = musicRepository.getMusicListFromLocal()
+                _musicList.postValue(music)
+            } catch (e: Exception) {
+                Log.e("MusicViewModel", "Error loading music from database", e)
+            }
         }
     }
 
     fun findMusic(title: String) {
         viewModelScope.launch {
-            val music = musicDao.findMusicByTitle(title)
+            try {
+                val music = musicRepository.findMusicByTitle(title)
+                Log.d("TestLog", "Found music: ${music?.title}")
+            } catch (e: Exception) {
+                Log.e("MusicViewModel", "Error finding music by title: $title", e)
+            }
         }
     }
 
     fun deleteMusic(musicId: Long) {
         viewModelScope.launch {
-            musicDao.deleteMusic(musicId)
-            loadMusic()
+            try {
+                Log.d("TestLog", "Deleting music with ID: $musicId")
+                musicRepository.deleteMusic(musicId)
+                loadMusic()
+            } catch (e: Exception) {
+                Log.e("MusicViewModel", "Error deleting music with ID: $musicId", e)
+            }
         }
     }
 }

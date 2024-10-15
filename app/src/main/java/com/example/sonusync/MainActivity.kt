@@ -18,7 +18,6 @@ import com.example.sonusync.ui.music.LibraryFragment
 import com.example.sonusync.ui.music.SearchFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -100,7 +99,7 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                musicViewModel.loadMusic()
+                musicViewModel.insertMusic()
             } else {
                 Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
             }

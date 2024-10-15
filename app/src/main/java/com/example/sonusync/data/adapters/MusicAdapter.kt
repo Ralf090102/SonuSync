@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
-import javax.inject.Inject
 
 
 class MusicAdapter(

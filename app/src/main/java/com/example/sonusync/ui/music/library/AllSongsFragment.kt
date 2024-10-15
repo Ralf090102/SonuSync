@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
@@ -24,13 +25,11 @@ class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicAdapter.Mus
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val recyclerView: RecyclerView = view.findViewById(R.id.rvAllSongs)
         musicAdapter = MusicAdapter(this)
-        val recyclerView: RecyclerView = view.findViewById(R.id.songsRecyclerView)
         recyclerView.adapter = musicAdapter
 
-        musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-            musicAdapter.submitList(musicList)
-        }
+        recyclerView.layoutManager = LinearLayoutManager(context)
     }
 
     override fun onMusicClick(music: Music) {
@@ -41,5 +40,9 @@ class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicAdapter.Mus
             putExtra("MUSIC_ALBUM_COVER", music.albumArtUri)
         }
         startActivity(intent)
+    }
+
+    fun updateMusic(musicList: List<Music>) {
+        musicAdapter.submitList(musicList)
     }
 }
