@@ -1,5 +1,6 @@
 package com.example.sonusync.viewmodel
 
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,16 +14,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MusicViewModel  @Inject constructor(
-    private val musicRepository: MusicRepository
+    private val musicRepository: MusicRepository,
+    private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
+
+    companion object {
+        private const val PREF_CURRENT_MUSIC_INDEX = "pref_current_music_index"
+        private const val PREF_SHUFFLE_STATE = "pref_shuffle_state"
+    }
 
     private val _musicList = MutableLiveData<List<Music>>(emptyList())
     val musicList: LiveData<List<Music>> get() = _musicList
 
-    private val _currentMusicIndex = MutableLiveData<Int>().apply { value = 0 }
+    private val _currentMusicIndex = MutableLiveData<Int>().apply { value = sharedPreferences.getInt(PREF_CURRENT_MUSIC_INDEX, 0) }
     val currentMusicIndex: LiveData<Int> get() = _currentMusicIndex
 
-    private val _isShuffled = MutableLiveData(false)
+    private val _isShuffled = MutableLiveData<Boolean>().apply { value = sharedPreferences.getBoolean(PREF_SHUFFLE_STATE, false) }
     val isShuffleEnabled: LiveData<Boolean> get() = _isShuffled
 
     fun insertMusic() {
@@ -48,6 +55,16 @@ class MusicViewModel  @Inject constructor(
         }
     }
 
+    fun selectMusicAtIndex(index: Int) {
+        if (index in 0 until (_musicList.value?.size ?: 0)) {
+            _currentMusicIndex.value = index
+
+            sharedPreferences.edit()
+                .putInt(PREF_CURRENT_MUSIC_INDEX, index)
+                .apply()
+        }
+    }
+
     fun playNext() {
         val currentIndex = _currentMusicIndex.value ?: return
         val musicListSize = _musicList.value?.size ?: 1
@@ -61,8 +78,11 @@ class MusicViewModel  @Inject constructor(
         } else {
             (currentIndex + 1) % musicListSize
         }
-
         _currentMusicIndex.postValue(newIndex)
+
+        sharedPreferences.edit()
+            .putInt(PREF_CURRENT_MUSIC_INDEX, newIndex)
+            .apply()
     }
 
     fun playPrevious() {
@@ -78,12 +98,18 @@ class MusicViewModel  @Inject constructor(
         } else {
             if (currentIndex > 0) currentIndex - 1 else musicListSize - 1
         }
-
         _currentMusicIndex.postValue(newIndex)
+
+        sharedPreferences.edit()
+            .putInt(PREF_CURRENT_MUSIC_INDEX, newIndex)
+            .apply()
     }
 
     fun toggleShuffle() {
         _isShuffled.value = _isShuffled.value?.not()
+        sharedPreferences.edit()
+            .putBoolean(PREF_SHUFFLE_STATE, _isShuffled.value ?: false)
+            .apply()
     }
 
     fun findMusic(title: String) {
@@ -104,12 +130,6 @@ class MusicViewModel  @Inject constructor(
             } catch (e: Exception) {
                 Log.e("MusicViewModel", "Error deleting music with ID: $musicId", e)
             }
-        }
-    }
-
-    fun selectMusicAtIndex(index: Int) {
-        if (index in 0 until (_musicList.value?.size ?: 0)) {
-            _currentMusicIndex.value = index
         }
     }
 }

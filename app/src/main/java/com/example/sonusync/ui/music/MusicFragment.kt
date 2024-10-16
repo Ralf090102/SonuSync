@@ -58,9 +58,8 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
 
         initializeViews(view)
 
-        musicViewModel.isShuffleEnabled.observe(viewLifecycleOwner) { isShuffleEnabled ->
-            val iconRes = if (isShuffleEnabled) R.drawable.ic_music_shuffle_on else R.drawable.ic_music_shuffle_off
-            ibShuffle.setImageResource(iconRes)
+        musicViewModel.isShuffleEnabled.observe(viewLifecycleOwner) { isShuffled ->
+            ibShuffle.setImageResource(if (isShuffled) R.drawable.ic_music_shuffle_on else R.drawable.ic_music_shuffle_off)
         }
 
         musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
