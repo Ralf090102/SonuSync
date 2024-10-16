@@ -61,7 +61,6 @@ class MusicViewModel  @Inject constructor(
         viewModelScope.launch {
             try {
                 val music = musicRepository.findMusicByTitle(title)
-                Log.d("TestLog", "Found music: ${music?.title}")
             } catch (e: Exception) {
                 Log.e("MusicViewModel", "Error finding music by title: $title", e)
             }
@@ -71,7 +70,6 @@ class MusicViewModel  @Inject constructor(
     fun deleteMusic(musicId: Long) {
         viewModelScope.launch {
             try {
-                Log.d("TestLog", "Deleting music with ID: $musicId")
                 musicRepository.deleteMusic(musicId)
                 loadMusic()
             } catch (e: Exception) {

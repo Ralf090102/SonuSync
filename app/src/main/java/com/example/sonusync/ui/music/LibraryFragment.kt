@@ -1,8 +1,10 @@
 package com.example.sonusync.ui.music
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.example.sonusync.R
@@ -21,8 +23,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
     private lateinit var viewPager: ViewPager2
     private lateinit var tabLayout: TabLayout
 
-    @Inject
-    lateinit var musicViewModel: MusicViewModel
+    private val musicViewModel: MusicViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?){
         super.onViewCreated(view, savedInstanceState)
@@ -40,8 +41,6 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
                 else -> null
             }
         }.attach()
-
-        musicViewModel.loadMusic()
 
         musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
             notifyChildFragments(musicList)
