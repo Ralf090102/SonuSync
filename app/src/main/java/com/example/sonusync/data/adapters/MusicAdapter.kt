@@ -14,7 +14,6 @@ import coil.load
 import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
 
-
 class MusicAdapter(
     private val musicClickListener: MusicClickListener
 ) : ListAdapter<Music, MusicAdapter.MusicViewHolder>(MusicDiffCallback()) {
@@ -48,7 +47,10 @@ class MusicAdapter(
             }
 
             itemView.setOnClickListener {
-                musicClickListener.onMusicClick(music)
+                val currentPosition = bindingAdapterPosition
+                if (currentPosition != RecyclerView.NO_POSITION) {
+                    musicClickListener.onMusicClick(music, currentPosition)
+                }
             }
         }
 
@@ -71,6 +73,6 @@ class MusicAdapter(
     }
 
     interface MusicClickListener {
-        fun onMusicClick(music: Music)
+        fun onMusicClick(music: Music, position: Int)
     }
 }

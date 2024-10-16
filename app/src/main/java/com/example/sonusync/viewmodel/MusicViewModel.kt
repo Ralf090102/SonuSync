@@ -77,4 +77,10 @@ class MusicViewModel  @Inject constructor(
             }
         }
     }
+
+    fun selectMusicAtIndex(index: Int) {
+        if (index in 0 until (_musicList.value?.size ?: 0)) {
+            _currentMusicIndex.value = index
+        }
+    }
 }

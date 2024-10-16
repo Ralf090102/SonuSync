@@ -5,14 +5,13 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -27,7 +26,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MusicFragment : Fragment(R.layout.fragment_music) {
 
-    private val musicViewModel: MusicViewModel by viewModels()
+    private val musicViewModel: MusicViewModel by activityViewModels()
 
     private lateinit var exoPlayer: ExoPlayer
     private lateinit var tvMusicTitle: TextView
@@ -57,17 +56,18 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val title = arguments?.getString("MUSIC_TITLE")
-        val artist = arguments?.getString("MUSIC_ARTIST")
-        val duration = arguments?.getLong("MUSIC_DURATION")
-        val albumCoverUri = arguments?.getString("MUSIC_ALBUM_COVER")
-        val musicUri = arguments?.getString("MUSIC_URI")
-
         initializeViews(view)
-        setMusicFragmentUI(title, artist, duration?.let { formatDuration(it) }, albumCoverUri)
 
-        setupExoPlayer(musicUri)
-        setPlayerListeners(duration)
+        musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
+            musicViewModel.currentMusicIndex.observe(viewLifecycleOwner) { index ->
+                if (index != null && index < musicList.size) {
+                    val music = musicList[index]
+                    setupExoPlayer(music.uri)
+                    setMusicFragmentUI(music.title, music.artist, formatDuration(music.duration), music.albumArtUri)
+                    setPlayerListeners(music.duration)
+                }
+            }
+        }
     }
 
     override fun onStop() {
@@ -119,10 +119,12 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
         }
 
         ibNext.setOnClickListener {
+            exoPlayer.pause()
             musicViewModel.playNext()
         }
 
         ibPrev.setOnClickListener {
+            exoPlayer.pause()
             musicViewModel.playPrevious()
         }
 
