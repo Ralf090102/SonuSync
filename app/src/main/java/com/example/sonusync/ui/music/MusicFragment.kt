@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -19,6 +20,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import coil.load
 import com.example.sonusync.R
 import com.example.sonusync.viewmodel.MusicViewModel
+import com.example.sonusync.data.enums.RepeatMode
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.imageview.ShapeableImageView
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,6 +30,7 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
 
     private val musicViewModel: MusicViewModel by activityViewModels()
 
+    private var currentToast: Toast? = null
     private lateinit var exoPlayer: ExoPlayer
     private lateinit var tvMusicTitle: TextView
     private lateinit var tvMusicArtist: TextView
@@ -71,6 +74,17 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
                     setPlayerListeners(music.duration)
                 }
             }
+        }
+
+        musicViewModel.repeatMode.observe(viewLifecycleOwner) { mode ->
+            ibRepeat.setImageResource(
+                when (mode) {
+                    RepeatMode.OFF -> R.drawable.ic_music_repeat_disabled
+                    RepeatMode.ALL -> R.drawable.ic_music_repeat_enabled
+                    RepeatMode.ONE -> R.drawable.ic_music_repeat_one
+                    null -> TODO()
+                }
+            )
         }
     }
 
@@ -146,7 +160,21 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
 
         ibShuffle.setOnClickListener {
             musicViewModel.toggleShuffle()
+
+            currentToast?.cancel()
+            currentToast = Toast.makeText(context,
+                if (musicViewModel.isShuffleEnabled.value == true) "Shuffle On"
+                else "Shuffle Off",
+                Toast.LENGTH_SHORT).apply { show() }
         }
+
+        ibRepeat.setOnClickListener {
+            musicViewModel.toggleRepeat()
+
+            currentToast?.cancel()
+            currentToast = Toast.makeText(context,
+                "Repeat Mode: ${musicViewModel.repeatMode.value}",
+                Toast.LENGTH_SHORT).apply { show() }        }
 
         sbPlayback.max = duration?.toInt() ?: 0
 
@@ -156,6 +184,21 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
                     tvTotalTime.text = formatDuration(exoPlayer.duration)
                     sbPlayback.max = exoPlayer.duration.toInt()
                     handler.post(updateRunnable)
+                }
+            }
+
+            @Deprecated("Deprecated in Java")
+            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                if (playbackState == Player.STATE_ENDED) {
+                    when (musicViewModel.repeatMode.value) {
+                        RepeatMode.ALL -> musicViewModel.playNext()
+                        RepeatMode.ONE -> exoPlayer.seekTo(0)
+                        RepeatMode.OFF -> {
+                            exoPlayer.seekTo(0)
+                            exoPlayer.pause()
+                        }
+                        null -> TODO()
+                    }
                 }
             }
 

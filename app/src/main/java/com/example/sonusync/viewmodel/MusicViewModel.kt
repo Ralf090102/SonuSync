@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sonusync.data.enums.RepeatMode
 import com.example.sonusync.data.model.Music
 import com.example.sonusync.data.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +22,7 @@ class MusicViewModel  @Inject constructor(
     companion object {
         private const val PREF_CURRENT_MUSIC_INDEX = "pref_current_music_index"
         private const val PREF_SHUFFLE_STATE = "pref_shuffle_state"
+        private const val PREF_REPEAT_STATE = "pref_repeat_state"
     }
 
     private val _musicList = MutableLiveData<List<Music>>(emptyList())
@@ -31,6 +33,13 @@ class MusicViewModel  @Inject constructor(
 
     private val _isShuffled = MutableLiveData<Boolean>().apply { value = sharedPreferences.getBoolean(PREF_SHUFFLE_STATE, false) }
     val isShuffleEnabled: LiveData<Boolean> get() = _isShuffled
+
+    private val _repeatMode = MutableLiveData<RepeatMode>().apply { value = RepeatMode.OFF }
+    val repeatMode: LiveData<RepeatMode> get() = _repeatMode
+
+    init {
+        _repeatMode.value = RepeatMode.entries.toTypedArray()[sharedPreferences.getInt(PREF_REPEAT_STATE, 1)]
+    }
 
     fun insertMusic() {
         viewModelScope.launch {
@@ -76,7 +85,11 @@ class MusicViewModel  @Inject constructor(
             }
             randomIndex
         } else {
-            (currentIndex + 1) % musicListSize
+            when (_repeatMode.value) {
+                RepeatMode.ALL -> (currentIndex + 1) % musicListSize
+                RepeatMode.ONE -> currentIndex
+                else -> (currentIndex + 1) % musicListSize
+            }
         }
         _currentMusicIndex.postValue(newIndex)
 
@@ -96,7 +109,11 @@ class MusicViewModel  @Inject constructor(
             }
             randomIndex
         } else {
-            if (currentIndex > 0) currentIndex - 1 else musicListSize - 1
+            when (_repeatMode.value) {
+                RepeatMode.ALL -> if (currentIndex > 0) currentIndex - 1 else musicListSize - 1
+                RepeatMode.ONE -> currentIndex
+                else -> if (currentIndex > 0) currentIndex - 1 else musicListSize - 1
+            }
         }
         _currentMusicIndex.postValue(newIndex)
 
@@ -109,6 +126,20 @@ class MusicViewModel  @Inject constructor(
         _isShuffled.value = _isShuffled.value?.not()
         sharedPreferences.edit()
             .putBoolean(PREF_SHUFFLE_STATE, _isShuffled.value ?: false)
+            .apply()
+    }
+
+    fun toggleRepeat() {
+        val nextMode = when (_repeatMode.value) {
+            RepeatMode.OFF -> RepeatMode.ALL
+            RepeatMode.ALL -> RepeatMode.ONE
+            RepeatMode.ONE -> RepeatMode.OFF
+            null -> TODO()
+        }
+        _repeatMode.value = nextMode
+
+        sharedPreferences.edit()
+            .putInt(PREF_REPEAT_STATE, nextMode.ordinal)
             .apply()
     }
 

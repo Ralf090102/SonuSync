@@ -64,7 +64,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="60dp"
         android:contentDescription="@string/repeat_btn"
-        android:src="@drawable/ic_music_repeat_disabled"
+        android:src="@drawable/ic_music_repeat_enabled"
         app:layout_constraintEnd_toStartOf="@+id/ibPrev"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvMusicArtist" />
