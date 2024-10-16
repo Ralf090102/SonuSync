@@ -22,6 +22,9 @@ class MusicViewModel  @Inject constructor(
     private val _currentMusicIndex = MutableLiveData<Int>().apply { value = 0 }
     val currentMusicIndex: LiveData<Int> get() = _currentMusicIndex
 
+    private val _isShuffled = MutableLiveData(false)
+    val isShuffleEnabled: LiveData<Boolean> get() = _isShuffled
+
     fun insertMusic() {
         viewModelScope.launch {
             try {
@@ -46,15 +49,41 @@ class MusicViewModel  @Inject constructor(
     }
 
     fun playNext() {
-        val index = _currentMusicIndex.value ?: return
-        val newIndex = (index + 1) % (_musicList.value?.size ?: 1)
+        val currentIndex = _currentMusicIndex.value ?: return
+        val musicListSize = _musicList.value?.size ?: 1
+
+        val newIndex = if (_isShuffled.value == true) {
+            var randomIndex = (0 until musicListSize).random()
+            while (randomIndex == currentIndex) {
+                randomIndex = (0 until musicListSize).random()
+            }
+            randomIndex
+        } else {
+            (currentIndex + 1) % musicListSize
+        }
+
         _currentMusicIndex.postValue(newIndex)
     }
 
     fun playPrevious() {
-        val index = _currentMusicIndex.value ?: return
-        val newIndex = if (index > 0) index - 1 else (_musicList.value?.size ?: 1) - 1
+        val currentIndex = _currentMusicIndex.value ?: return
+        val musicListSize = _musicList.value?.size ?: 1
+
+        val newIndex = if (_isShuffled.value == true) {
+            var randomIndex = (0 until musicListSize).random()
+            while (randomIndex == currentIndex) {
+                randomIndex = (0 until musicListSize).random()
+            }
+            randomIndex
+        } else {
+            if (currentIndex > 0) currentIndex - 1 else musicListSize - 1
+        }
+
         _currentMusicIndex.postValue(newIndex)
+    }
+
+    fun toggleShuffle() {
+        _isShuffled.value = _isShuffled.value?.not()
     }
 
     fun findMusic(title: String) {

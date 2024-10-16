@@ -58,6 +58,11 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
 
         initializeViews(view)
 
+        musicViewModel.isShuffleEnabled.observe(viewLifecycleOwner) { isShuffleEnabled ->
+            val iconRes = if (isShuffleEnabled) R.drawable.ic_music_shuffle_on else R.drawable.ic_music_shuffle_off
+            ibShuffle.setImageResource(iconRes)
+        }
+
         musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
             musicViewModel.currentMusicIndex.observe(viewLifecycleOwner) { index ->
                 if (index != null && index < musicList.size) {
@@ -95,6 +100,18 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
         ibRepeat = view.findViewById(R.id.ibRepeat)
     }
 
+    private fun setMusicFragmentUI(title: String?, artist: String?, duration: String?, albumArtUri: String?){
+        tvMusicTitle.text = title
+        tvMusicArtist.text = artist
+        tvTotalTime.text = duration
+        val albumArt = Uri.parse(albumArtUri)
+
+        sivAlbumCover.load(albumArt) {
+            placeholder(R.drawable.default_album_cover)
+            error(R.drawable.default_album_cover)
+        }
+    }
+
     private fun setupExoPlayer(musicUri: String?) {
         exoPlayer = ExoPlayer.Builder(requireContext()).build()
         val mediaItem = MediaItem.fromUri(Uri.parse(musicUri))
@@ -126,6 +143,10 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
         ibPrev.setOnClickListener {
             exoPlayer.pause()
             musicViewModel.playPrevious()
+        }
+
+        ibShuffle.setOnClickListener {
+            musicViewModel.toggleShuffle()
         }
 
         sbPlayback.max = duration?.toInt() ?: 0
@@ -163,17 +184,5 @@ class MusicFragment : Fragment(R.layout.fragment_music) {
         val minutes = (duration / 1000) / 60
         val seconds = (duration / 1000) % 60
         return String.format("%d:%02d", minutes, seconds)
-    }
-
-    private fun setMusicFragmentUI(title: String?, artist: String?, duration: String?, albumArtUri: String?){
-        tvMusicTitle.text = title
-        tvMusicArtist.text = artist
-        tvTotalTime.text = duration
-        val albumArt = Uri.parse(albumArtUri)
-
-        sivAlbumCover.load(albumArt) {
-            placeholder(R.drawable.default_album_cover)
-            error(R.drawable.default_album_cover)
-        }
     }
 }
