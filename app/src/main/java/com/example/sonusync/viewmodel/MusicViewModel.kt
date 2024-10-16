@@ -16,8 +16,11 @@ class MusicViewModel  @Inject constructor(
     private val musicRepository: MusicRepository
 ) : ViewModel() {
 
-    private val _musicList = MutableLiveData<List<Music>>()
+    private val _musicList = MutableLiveData<List<Music>>(emptyList())
     val musicList: LiveData<List<Music>> get() = _musicList
+
+    private val _currentMusicIndex = MutableLiveData<Int>().apply { value = 0 }
+    val currentMusicIndex: LiveData<Int> get() = _currentMusicIndex
 
     fun insertMusic() {
         viewModelScope.launch {
@@ -40,6 +43,18 @@ class MusicViewModel  @Inject constructor(
                 Log.e("MusicViewModel", "Error loading music from database", e)
             }
         }
+    }
+
+    fun playNext() {
+        val index = _currentMusicIndex.value ?: return
+        val newIndex = (index + 1) % (_musicList.value?.size ?: 1)
+        _currentMusicIndex.postValue(newIndex)
+    }
+
+    fun playPrevious() {
+        val index = _currentMusicIndex.value ?: return
+        val newIndex = if (index > 0) index - 1 else (_musicList.value?.size ?: 1) - 1
+        _currentMusicIndex.postValue(newIndex)
     }
 
     fun findMusic(title: String) {
