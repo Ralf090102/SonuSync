@@ -1,48 +1,63 @@
 package com.example.sonusync.ui.music.library
 
-import android.content.Intent
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
 import com.example.sonusync.data.model.Music
-import com.example.sonusync.ui.music.MusicActivity
+import com.example.sonusync.ui.music.MusicFragment
 import com.example.sonusync.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicAdapter.MusicClickListener {
 
-    @Inject
-    lateinit var musicViewModel: MusicViewModel
+    private val musicViewModel: MusicViewModel by activityViewModels()
 
     private lateinit var musicAdapter: MusicAdapter
+    private var recyclerViewState: Parcelable? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val recyclerView: RecyclerView = view.findViewById(R.id.rvAllSongs)
-        musicAdapter = MusicAdapter(this)
-        recyclerView.adapter = musicAdapter
+        musicAdapter = MusicAdapter(this).apply {
+            recyclerView.adapter = this
+        }
 
         recyclerView.layoutManager = LinearLayoutManager(context)
+        observeViewModel()
     }
 
-    override fun onMusicClick(music: Music) {
-        val intent =  Intent(activity, MusicActivity::class.java).apply {
-            putExtra("MUSIC_TITLE", music.title)
-            putExtra("MUSIC_ARTIST", music.artist)
-            putExtra("MUSIC_DURATION", music.duration)
-            putExtra("MUSIC_ALBUM_COVER", music.albumArtUri)
+    override fun onMusicClick(music: Music, position: Int) {
+
+        musicViewModel.selectMusicAtIndex(position)
+
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.flMusic, MusicFragment())
+            .commit()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        view?.findViewById<RecyclerView>(R.id.rvAllSongs)?.layoutManager?.let { layoutManager ->
+            recyclerViewState = layoutManager.onSaveInstanceState()
         }
-        startActivity(intent)
     }
 
     fun updateMusic(musicList: List<Music>) {
         musicAdapter.submitList(musicList)
+    }
+
+    private fun observeViewModel() {
+        musicViewModel.musicList.observe(viewLifecycleOwner, Observer { musicList ->
+            updateMusic(musicList)
+        })
     }
 }

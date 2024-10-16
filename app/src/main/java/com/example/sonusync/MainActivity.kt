@@ -3,6 +3,7 @@ package com.example.sonusync
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -30,7 +31,11 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         hideStatusBar()
-        if (!checkPermission()) { requestPermission() }
+        if (!checkPermission()) {
+            requestPermission()
+        } else {
+            musicViewModel.loadMusic()
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())

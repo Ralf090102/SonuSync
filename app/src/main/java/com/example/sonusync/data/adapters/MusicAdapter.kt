@@ -2,7 +2,6 @@ package com.example.sonusync.data.adapters
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
-
 
 class MusicAdapter(
     private val musicClickListener: MusicClickListener
@@ -43,16 +41,16 @@ class MusicAdapter(
             durationTextView.text = formatDuration(music.duration)
             val albumArt = Uri.parse(music.albumArtUri)
 
-            Log.d("MusicAdapter", "Album art String: ${music.albumArtUri}")
-            Log.d("MusicAdapter", "Album art URI: $albumArt")
-
             albumCoverImageView.load(albumArt) {
                 placeholder(R.drawable.default_album_cover)
                 error(R.drawable.default_album_cover)
             }
 
             itemView.setOnClickListener {
-                musicClickListener.onMusicClick(music)
+                val currentPosition = bindingAdapterPosition
+                if (currentPosition != RecyclerView.NO_POSITION) {
+                    musicClickListener.onMusicClick(music, currentPosition)
+                }
             }
         }
 
@@ -75,6 +73,6 @@ class MusicAdapter(
     }
 
     interface MusicClickListener {
-        fun onMusicClick(music: Music)
+        fun onMusicClick(music: Music, position: Int)
     }
 }
