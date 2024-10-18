@@ -22,9 +22,14 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
 
     private lateinit var musicAdapter: MusicAdapter
     private var recyclerViewState: Parcelable? = null
+    private var albumName: String? = null
+    private var artistName: String? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        albumName = arguments?.getString("album_name")
+        artistName = arguments?.getString("artist_name")
 
         val recyclerView: RecyclerView = view.findViewById(R.id.rvAllSongs)
         musicAdapter = MusicAdapter(this).apply {
@@ -32,7 +37,14 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
         }
 
         recyclerView.layoutManager = LinearLayoutManager(context)
-        observeViewModel()
+
+
+        if (albumName != null) {
+            musicViewModel.filterMusicByAlbum(albumName!!)
+            observeFilteredMusic()
+        } else {
+            observeViewModel()
+        }
     }
 
     override fun onMusicClick(music: Music, position: Int) {
@@ -59,5 +71,11 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
         musicViewModel.musicList.observe(viewLifecycleOwner, Observer { musicList ->
             updateMusic(musicList)
         })
+    }
+
+    private fun observeFilteredMusic() {
+        musicViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredSongs ->
+            updateMusic(filteredSongs)
+        }
     }
 }

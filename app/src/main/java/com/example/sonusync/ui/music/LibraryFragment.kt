@@ -60,7 +60,6 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
         val currentFragment = childFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
         if (currentFragment is AllSongsFragment) {
             currentFragment.updateMusic(musicList)
-            Log.d ("TestLog", "Music List: ${musicList.size}")
         }
     }
 
@@ -68,15 +67,13 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
         val currentFragment = childFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
         if (currentFragment is ArtistsFragment) {
             //currentFragment.updateArtists(artistList)
-            Log.d ("TestLog", "Artist List: ${artistList.size}")
         }
     }
 
     private fun notifyAlbumFragments(albumList: List<Album>) {
         val currentFragment = childFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
         if (currentFragment is AlbumsFragment) {
-            //currentFragment.updateAlbums(albumList)
-            Log.d ("TestLog", "Album List: ${albumList.size}")
+            currentFragment.updateAlbums(albumList)
         }
     }
 
@@ -84,7 +81,6 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
         val currentFragment = childFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
         if (currentFragment is AlbumsFragment) {
             //currentFragment.updatePlaylists(playlistList)
-            Log.d ("TestLog", "Playlist List: ${playlistList.size}")
         }
     }
 

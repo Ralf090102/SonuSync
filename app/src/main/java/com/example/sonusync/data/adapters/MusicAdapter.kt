@@ -18,16 +18,20 @@ class MusicAdapter(
     private val musicClickListener: MusicClickListener
 ) : ListAdapter<Music, MusicAdapter.MusicViewHolder>(MusicDiffCallback()) {
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
-            val itemView = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_music, parent, false)
-            return MusicViewHolder(itemView)
-        }
+    interface MusicClickListener {
+        fun onMusicClick(music: Music, position: Int)
+    }
 
-        override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
-            val music = getItem(position)
-            holder.bind(music, musicClickListener)
-        }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
+        val itemView = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_music, parent, false)
+        return MusicViewHolder(itemView)
+    }
+
+    override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
+        val music = getItem(position)
+        holder.bind(music, musicClickListener)
+    }
 
     class MusicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.tvItemTitle)
@@ -70,9 +74,5 @@ class MusicAdapter(
         override fun areContentsTheSame(oldItem: Music, newItem: Music): Boolean {
             return oldItem == newItem
         }
-    }
-
-    interface MusicClickListener {
-        fun onMusicClick(music: Music, position: Int)
     }
 }

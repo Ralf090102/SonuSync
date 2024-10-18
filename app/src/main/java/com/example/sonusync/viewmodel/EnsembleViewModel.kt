@@ -5,9 +5,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sonusync.data.dao.AlbumDao
-import com.example.sonusync.data.dao.ArtistDao
-import com.example.sonusync.data.dao.PlaylistDao
 import com.example.sonusync.data.model.Album
 import com.example.sonusync.data.model.Artist
 import com.example.sonusync.data.model.Playlist
@@ -44,6 +41,8 @@ class EnsembleViewModel @Inject constructor(
                 // Might Be Implemented In The Future
                 val playlistList = null
                 musicRepository.saveMusicListToLocal(emptyList())
+
+                loadEnsembles()
             } catch (e: Exception) {
                 Log.e("EnsembleViewModel", "Error inserting ensembles", e)
             }
