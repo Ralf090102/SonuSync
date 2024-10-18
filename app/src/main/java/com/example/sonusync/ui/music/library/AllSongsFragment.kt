@@ -43,6 +43,13 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
                     recyclerView.adapter = this
                 }
             }
+        } else if (artistName != null) {
+            musicViewModel.filterMusicByArtist(artistName!!)
+            musicViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredMusicList ->
+                musicAdapter = MusicAdapter(filteredMusicList, musicAll, this).apply {
+                    recyclerView.adapter = this
+                }
+            }
         } else {
             musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
                 musicAdapter = MusicAdapter(musicList, musicList, this).apply {

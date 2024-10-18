@@ -156,6 +156,15 @@ class MusicViewModel  @Inject constructor(
         _filteredMusicList.postValue(filteredList)
     }
 
+    fun filterMusicByArtist(artistName: String) {
+        val fullList = _musicList.value ?: emptyList()
+        val filteredList = fullList.filter {
+            it.artist == artistName
+        }
+
+        _filteredMusicList.postValue(filteredList)
+    }
+
     fun clearFilteredMusicList() {
         _filteredMusicList.postValue(emptyList())
     }

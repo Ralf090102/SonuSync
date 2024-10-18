@@ -66,7 +66,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
     private fun notifyArtistFragments(artistList: List<Artist>) {
         val currentFragment = childFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
         if (currentFragment is ArtistsFragment) {
-            //currentFragment.updateArtists(artistList)
+            currentFragment.updateArtists(artistList)
         }
     }
 
