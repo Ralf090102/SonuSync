@@ -1,9 +1,9 @@
 package com.example.sonusync
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.ui.music.LibraryFragment
 import com.example.sonusync.ui.music.SearchFragment
+import com.example.sonusync.ui.settings.SettingsActivity
 import com.example.sonusync.viewmodel.EnsembleViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
@@ -64,7 +65,7 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.miSettings -> {
-                    //Will Implement Later should be an Activity
+                    startActivity(Intent(this, SettingsActivity::class.java))
                     true
                 }
                 else -> false
