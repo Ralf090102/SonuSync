@@ -21,4 +21,5 @@
 
     <string name="tab_layout">Tab Layout</string>
     <string name="ensemble_cover">Ensemble Cover</string>
+    <string name="go_back">Go Back</string>
 </resources>

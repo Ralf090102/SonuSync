@@ -156,6 +156,10 @@ class MusicViewModel  @Inject constructor(
         _filteredMusicList.postValue(filteredList)
     }
 
+    fun clearFilteredMusicList() {
+        _filteredMusicList.postValue(emptyList())
+    }
+
     fun findMusic(title: String) {
         viewModelScope.launch {
             try {

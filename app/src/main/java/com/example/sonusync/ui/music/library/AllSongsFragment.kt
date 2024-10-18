@@ -31,25 +31,30 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
         albumName = arguments?.getString("album_name")
         artistName = arguments?.getString("artist_name")
 
+        val musicAll = musicViewModel.musicList.value ?: emptyList()
+
         val recyclerView: RecyclerView = view.findViewById(R.id.rvAllSongs)
-        musicAdapter = MusicAdapter(this).apply {
-            recyclerView.adapter = this
-        }
-
         recyclerView.layoutManager = LinearLayoutManager(context)
-
 
         if (albumName != null) {
             musicViewModel.filterMusicByAlbum(albumName!!)
-            observeFilteredMusic()
+            musicViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredMusicList ->
+                musicAdapter = MusicAdapter(filteredMusicList, musicAll, this).apply {
+                    recyclerView.adapter = this
+                }
+            }
         } else {
-            observeViewModel()
+            musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
+                musicAdapter = MusicAdapter(musicList, musicList, this).apply {
+                    recyclerView.adapter = this
+                }
+            }
         }
     }
 
-    override fun onMusicClick(music: Music, position: Int) {
+    override fun onMusicClick(music: Music, globalIndex: Int) {
 
-        musicViewModel.selectMusicAtIndex(position)
+        musicViewModel.selectMusicAtIndex(globalIndex)
 
         parentFragmentManager.beginTransaction()
             .replace(R.id.flMusic, MusicFragment())
@@ -61,6 +66,11 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
         view?.findViewById<RecyclerView>(R.id.rvAllSongs)?.layoutManager?.let { layoutManager ->
             recyclerViewState = layoutManager.onSaveInstanceState()
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        musicViewModel.clearFilteredMusicList()
     }
 
     fun updateMusic(musicList: List<Music>) {
