@@ -26,7 +26,7 @@ import com.google.android.material.imageview.ShapeableImageView
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MusicFragment : Fragment(R.layout.fragment_music) {
+class MusicFragment : Fragment(R.layout.fragment_music_player) {
 
     private val musicViewModel: MusicViewModel by activityViewModels()
 

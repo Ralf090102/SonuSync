@@ -1,12 +1,10 @@
 package com.example.sonusync.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sonusync.data.dao.AlbumDao
-import com.example.sonusync.data.dao.ArtistDao
-import com.example.sonusync.data.dao.PlaylistDao
 import com.example.sonusync.data.model.Album
 import com.example.sonusync.data.model.Artist
 import com.example.sonusync.data.model.Playlist
@@ -17,10 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EnsembleViewModel @Inject constructor(
-    private val musicRepository: MusicRepository,
-    private val albumDao: AlbumDao,
-    private val artistDao: ArtistDao,
-    private val playlistDao: PlaylistDao
+    private val musicRepository: MusicRepository
 ) : ViewModel() {
 
     private val _albums = MutableLiveData<List<Album>>()
@@ -32,30 +27,43 @@ class EnsembleViewModel @Inject constructor(
     private val _playlists = MutableLiveData<List<Playlist>>()
     val playlists: LiveData<List<Playlist>> get() = _playlists
 
-    init {
-        loadAlbums()
-        loadArtists()
-        loadPlaylists()
-    }
-
-    private fun loadAlbums() {
+    fun insertEnsembles(){
         viewModelScope.launch {
-            val albumList = albumDao.getAllAlbums()
-            _albums.postValue(albumList)
+            try {
+                val musicData = musicRepository.getMusicFromStorage()
+
+                val artistList = musicData.artistList
+                musicRepository.saveArtistListToLocal(artistList)
+
+                val albumList = musicData.albumList
+                musicRepository.saveAlbumListToLocal(albumList)
+
+                // Might Be Implemented In The Future
+                val playlistList = null
+                musicRepository.saveMusicListToLocal(emptyList())
+
+                loadEnsembles()
+            } catch (e: Exception) {
+                Log.e("EnsembleViewModel", "Error inserting ensembles", e)
+            }
         }
     }
 
-    private fun loadArtists() {
+    fun loadEnsembles(){
         viewModelScope.launch {
-            val aristList = artistDao.getAllArtists()
-            _artists.postValue(aristList)
-        }
-    }
+            try {
+                val artists = musicRepository.getArtistListFromLocal()
+                _artists.postValue(artists)
 
-    private fun loadPlaylists() {
-        viewModelScope.launch {
-            val playlistList = playlistDao.getAllPlaylists()
-            _playlists.postValue(playlistList)
+                val albums = musicRepository.getAlbumListFromLocal()
+                _albums.postValue(albums)
+
+                // Might Be Implemented In The Future
+                val playlistsList = null
+                _playlists.postValue(emptyList())
+            } catch (e: Exception) {
+                Log.e("EnsembleViewModel", "Error loading ensembles", e)
+            }
         }
     }
 }

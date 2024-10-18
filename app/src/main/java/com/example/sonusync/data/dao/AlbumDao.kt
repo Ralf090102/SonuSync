@@ -9,14 +9,11 @@ import com.example.sonusync.data.model.Album
 
 @Dao
 interface AlbumDao {
-    @Query("SELECT * FROM album")
-    suspend fun getAllAlbums(): List<Album>
-
-    @Query("SELECT * FROM album WHERE id = :albumId")
-    suspend fun getAlbumById(albumId: Long): Album?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAlbum(vararg albums: Album)
+    suspend fun saveAlbumListToLocal(albumList: List<Album>)
+
+    @Query("SELECT * FROM album ORDER BY name ASC")
+    suspend fun getAlbumListFromLocal(): List<Album>
 
     @Delete
     suspend fun deleteAlbum(album: Album)
