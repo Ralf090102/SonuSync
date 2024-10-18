@@ -9,14 +9,11 @@ import com.example.sonusync.data.model.Artist
 
 @Dao
 interface ArtistDao {
-    @Query("SELECT * FROM artist")
-    suspend fun getAllArtists(): List<Artist>
-
-    @Query("SELECT * FROM artist WHERE id = :artistId")
-    suspend fun getArtistById(artistId: Long): Artist?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertArtist(vararg artists: Artist)
+    suspend fun saveArtistListToLocal(artistList: List<Artist>)
+
+    @Query("SELECT * FROM artist ORDER BY name ASC")
+    suspend fun getArtistListFromLocal(): List<Artist>
 
     @Delete
     suspend fun deleteArtist(artist: Artist)

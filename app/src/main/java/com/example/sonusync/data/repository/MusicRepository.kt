@@ -5,7 +5,11 @@ import android.content.ContentUris
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
+import com.example.sonusync.data.dao.AlbumDao
+import com.example.sonusync.data.dao.ArtistDao
 import com.example.sonusync.data.dao.MusicDao
+import com.example.sonusync.data.model.Album
+import com.example.sonusync.data.model.Artist
 import com.example.sonusync.data.model.Music
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -13,10 +17,21 @@ import javax.inject.Singleton
 @Singleton
 class MusicRepository @Inject constructor(
     private val contentResolver: ContentResolver,
-    private val musicDao: MusicDao
+    private val musicDao: MusicDao,
+    private val artistDao: ArtistDao,
+    private val albumDao: AlbumDao
 ) {
-    fun getMusicFromStorage(): List<Music>{
+
+    data class MusicData(
+        val musicList: List<Music>,
+        val artistList: List<Artist>,
+        val albumList: List<Album>
+    )
+
+    fun getMusicFromStorage(): MusicData {
         val musicList = mutableListOf<Music>()
+        val artistSet = mutableSetOf<Artist>()
+        val albumSet = mutableSetOf<Album>()
 
         val projection = arrayOf(
             MediaStore.Audio.Media._ID,
@@ -29,7 +44,8 @@ class MusicRepository @Inject constructor(
             MediaStore.Audio.Media.YEAR,
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.DATA,
-            MediaStore.Audio.Media.ALBUM_ID
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.Media.ARTIST_ID
         )
 
         val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -50,6 +66,7 @@ class MusicRepository @Inject constructor(
             val durationColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
             val dataColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
             val albumIdColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+            val artistIdColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID)
 
             try {
                 while (it.moveToNext()) {
@@ -65,9 +82,13 @@ class MusicRepository @Inject constructor(
                         val duration = it.getLong(durationColumn)
                         val data = it.getString(dataColumn) ?: ""
                         val albumId = it.getLong(albumIdColumn)
+                        val artistId = it.getLong(artistIdColumn)
 
                         val albumArtUri = getAlbumArtUri(albumId)
                         val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+
+                        val albumEntry = Album(id = albumId, name = album)
+                        val artistEntry = Artist(id = artistId, name = artist)
 
                         val music = Music(
                             id = id,
@@ -85,6 +106,8 @@ class MusicRepository @Inject constructor(
                         )
 
                         musicList.add(music)
+                        artistSet.add(artistEntry)
+                        albumSet.add(albumEntry)
 
                     } catch (e: Exception) {
                         Log.e("MusicRepository", "Error retrieving music data: ${e.message}", e)
@@ -98,7 +121,11 @@ class MusicRepository @Inject constructor(
 
         }
 
-        return musicList
+        return MusicData(
+            musicList = musicList,
+            artistList = artistSet.toList(),
+            albumList = albumSet.toList()
+        )
     }
 
     private fun getAlbumArtUri(albumId: Long): String {
@@ -120,5 +147,21 @@ class MusicRepository @Inject constructor(
 
     suspend fun deleteMusic(musicId: Long) {
         musicDao.deleteMusic(musicId)
+    }
+
+    suspend fun getArtistListFromLocal(): List<Artist> {
+        return artistDao.getArtistListFromLocal()
+    }
+
+    suspend fun saveArtistListToLocal(artistList: List<Artist>) {
+        artistDao.saveArtistListToLocal(artistList)
+    }
+
+    suspend fun getAlbumListFromLocal(): List<Album> {
+        return albumDao.getAlbumListFromLocal()
+    }
+
+    suspend fun saveAlbumListToLocal(albumList: List<Album>) {
+        albumDao.saveAlbumListToLocal(albumList)
     }
 }

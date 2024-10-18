@@ -16,7 +16,7 @@ import com.example.sonusync.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class AllSongsFragment : Fragment(R.layout.fragment_all_songs), MusicAdapter.MusicClickListener {
+class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapter.MusicClickListener {
 
     private val musicViewModel: MusicViewModel by activityViewModels()
 

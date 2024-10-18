@@ -44,7 +44,8 @@ class MusicViewModel  @Inject constructor(
     fun insertMusic() {
         viewModelScope.launch {
             try {
-                val musicList = musicRepository.getMusicFromStorage()
+                val musicData = musicRepository.getMusicFromStorage()
+                val musicList = musicData.musicList
                 musicRepository.saveMusicListToLocal(musicList)
                 loadMusic()
             } catch (e: Exception) {
