@@ -9,14 +9,11 @@ import com.example.sonusync.data.model.Playlist
 
 @Dao
 interface PlaylistDao {
-    @Query("SELECT * FROM playlist")
-    suspend fun getAllPlaylists(): List<Playlist>
-
-    @Query("SELECT * FROM playlist WHERE id = :playlistId")
-    suspend fun getPlaylistById(playlistId: Long): Playlist?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPlaylist(vararg playlists: Playlist)
+    suspend fun savePlaylistListToLocal(playlistList: List<Playlist>)
+
+    @Query("SELECT * FROM playlist ORDER BY name ASC")
+    suspend fun getPlaylistListFromLocal(): List<Playlist>
 
     @Delete
     suspend fun deletePlaylist(playlist: Playlist)

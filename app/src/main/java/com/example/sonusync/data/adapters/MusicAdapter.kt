@@ -15,19 +15,31 @@ import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
 
 class MusicAdapter(
+    private val localMusicList: List<Music>,
+    private val globalMusicList: List<Music>,
     private val musicClickListener: MusicClickListener
 ) : ListAdapter<Music, MusicAdapter.MusicViewHolder>(MusicDiffCallback()) {
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
-            val itemView = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_music, parent, false)
-            return MusicViewHolder(itemView)
-        }
+    interface MusicClickListener {
+        fun onMusicClick(music: Music, globalIndex: Int)
+    }
 
-        override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
-            val music = getItem(position)
-            holder.bind(music, musicClickListener)
-        }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
+        val itemView = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_music, parent, false)
+        return MusicViewHolder(itemView)
+    }
+
+    override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
+        val music = localMusicList[position]
+
+        val globalIndex = globalMusicList.indexOfFirst { it.id == music.id }
+
+        holder.bind(music, musicClickListener, globalIndex)
+
+    }
+
+    override fun getItemCount(): Int = localMusicList.size
 
     class MusicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.tvItemTitle)
@@ -35,7 +47,7 @@ class MusicAdapter(
         private val durationTextView: TextView = itemView.findViewById(R.id.tvItemDuration)
         private val albumCoverImageView: ImageView = itemView.findViewById(R.id.ivItemCover)
 
-        fun bind(music: Music, musicClickListener: MusicClickListener) {
+        fun bind(music: Music, musicClickListener: MusicClickListener, globalIndex: Int) {
             titleTextView.text = music.title
             artistTextView.text = music.artist
             durationTextView.text = formatDuration(music.duration)
@@ -47,9 +59,8 @@ class MusicAdapter(
             }
 
             itemView.setOnClickListener {
-                val currentPosition = bindingAdapterPosition
-                if (currentPosition != RecyclerView.NO_POSITION) {
-                    musicClickListener.onMusicClick(music, currentPosition)
+                if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                    musicClickListener.onMusicClick(music, globalIndex)
                 }
             }
         }
@@ -70,9 +81,5 @@ class MusicAdapter(
         override fun areContentsTheSame(oldItem: Music, newItem: Music): Boolean {
             return oldItem == newItem
         }
-    }
-
-    interface MusicClickListener {
-        fun onMusicClick(music: Music, position: Int)
     }
 }

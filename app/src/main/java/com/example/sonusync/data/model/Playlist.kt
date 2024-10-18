@@ -7,6 +7,5 @@ import androidx.room.PrimaryKey
 data class Playlist(
     @PrimaryKey override val id: Long,
     override val name: String,
-    override val coverUri: String?,
-    override val songs: List<Music> = emptyList()
+    override val artUri: String
 ) : Ensemble

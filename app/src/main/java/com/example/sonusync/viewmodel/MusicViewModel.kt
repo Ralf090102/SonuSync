@@ -37,6 +37,9 @@ class MusicViewModel  @Inject constructor(
     private val _repeatMode = MutableLiveData<RepeatMode>().apply { value = RepeatMode.OFF }
     val repeatMode: LiveData<RepeatMode> get() = _repeatMode
 
+    private val _filteredMusicList = MutableLiveData<List<Music>>()
+    val filteredMusicList: LiveData<List<Music>> get() = _filteredMusicList
+
     init {
         _repeatMode.value = RepeatMode.entries.toTypedArray()[sharedPreferences.getInt(PREF_REPEAT_STATE, 1)]
     }
@@ -44,7 +47,8 @@ class MusicViewModel  @Inject constructor(
     fun insertMusic() {
         viewModelScope.launch {
             try {
-                val musicList = musicRepository.getMusicFromStorage()
+                val musicData = musicRepository.getMusicFromStorage()
+                val musicList = musicData.musicList
                 musicRepository.saveMusicListToLocal(musicList)
                 loadMusic()
             } catch (e: Exception) {
@@ -141,6 +145,19 @@ class MusicViewModel  @Inject constructor(
         sharedPreferences.edit()
             .putInt(PREF_REPEAT_STATE, nextMode.ordinal)
             .apply()
+    }
+
+    fun filterMusicByAlbum(albumName: String) {
+        val fullList = _musicList.value ?: emptyList()
+        val filteredList = fullList.filter {
+            it.album == albumName
+        }
+
+        _filteredMusicList.postValue(filteredList)
+    }
+
+    fun clearFilteredMusicList() {
+        _filteredMusicList.postValue(emptyList())
     }
 
     fun findMusic(title: String) {

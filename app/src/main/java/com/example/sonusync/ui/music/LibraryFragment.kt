@@ -8,10 +8,14 @@ import androidx.fragment.app.activityViewModels
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.example.sonusync.R
+import com.example.sonusync.data.model.Album
+import com.example.sonusync.data.model.Artist
 import com.example.sonusync.data.model.Music
+import com.example.sonusync.data.model.Playlist
 import com.example.sonusync.ui.music.library.AlbumsFragment
 import com.example.sonusync.ui.music.library.AllSongsFragment
 import com.example.sonusync.ui.music.library.ArtistsFragment
+import com.example.sonusync.viewmodel.EnsembleViewModel
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -24,6 +28,7 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
     private lateinit var tabLayout: TabLayout
 
     private val musicViewModel: MusicViewModel by activityViewModels()
+    private val ensembleViewModel: EnsembleViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?){
         super.onViewCreated(view, savedInstanceState)
@@ -42,19 +47,40 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
             }
         }.attach()
 
-        musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-            notifyChildFragments(musicList)
-        }
+        musicViewModel.musicList.observe(viewLifecycleOwner) { musicList -> notifyMusicFragments(musicList) }
+
+        ensembleViewModel.artists.observe(viewLifecycleOwner) { artists -> notifyArtistFragments(artists) }
+
+        ensembleViewModel.albums.observe(viewLifecycleOwner) { albums -> notifyAlbumFragments(albums) }
+
+        ensembleViewModel.playlists.observe(viewLifecycleOwner) { playlists -> notifyPlaylistFragments(playlists) }
     }
 
-    private fun notifyChildFragments(musicList: List<Music>) {
+    private fun notifyMusicFragments(musicList: List<Music>) {
         val currentFragment = childFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
         if (currentFragment is AllSongsFragment) {
             currentFragment.updateMusic(musicList)
-        } else if (currentFragment is ArtistsFragment) {
-            //currentFragment.updateArtists(musicList) // Assuming you have this method in ArtistsFragment
-        } else if (currentFragment is AlbumsFragment) {
-           // currentFragment.updateAlbums(musicList) // Assuming you have this method in AlbumsFragment
+        }
+    }
+
+    private fun notifyArtistFragments(artistList: List<Artist>) {
+        val currentFragment = childFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
+        if (currentFragment is ArtistsFragment) {
+            //currentFragment.updateArtists(artistList)
+        }
+    }
+
+    private fun notifyAlbumFragments(albumList: List<Album>) {
+        val currentFragment = childFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
+        if (currentFragment is AlbumsFragment) {
+            currentFragment.updateAlbums(albumList)
+        }
+    }
+
+    private fun notifyPlaylistFragments(playlistList: List<Playlist>) {
+        val currentFragment = childFragmentManager.findFragmentByTag("f${viewPager.currentItem}")
+        if (currentFragment is AlbumsFragment) {
+            //currentFragment.updatePlaylists(playlistList)
         }
     }
 
