@@ -14,6 +14,9 @@ import com.example.sonusync.data.model.Music
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val UNKNOWN_ARTIST_ID = -1L
+private const val UNKNOWN_ALBUM_ID = -1L
+
 @Singleton
 class MusicRepository @Inject constructor(
     private val contentResolver: ContentResolver,
@@ -30,7 +33,7 @@ class MusicRepository @Inject constructor(
 
     fun getMusicFromStorage(): MusicData {
         val musicList = mutableListOf<Music>()
-        val artistSet = mutableSetOf<Artist>()
+        val artistSet = mutableMapOf<Long, Artist>()
         val albumSet = mutableSetOf<Album>()
 
         val projection = arrayOf(
@@ -54,7 +57,7 @@ class MusicRepository @Inject constructor(
 
         val cursor = contentResolver.query(uri, projection, selection, null, sort)
 
-        cursor?.use{
+        cursor?.use{ it ->
             val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val titleColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val artistColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
@@ -67,6 +70,7 @@ class MusicRepository @Inject constructor(
             val dataColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
             val albumIdColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
             val artistIdColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID)
+
 
             try {
                 while (it.moveToNext()) {
@@ -81,14 +85,11 @@ class MusicRepository @Inject constructor(
                         val year = it.getInt(yearColumn)
                         val duration = it.getLong(durationColumn)
                         val data = it.getString(dataColumn) ?: ""
-                        val albumId = it.getLong(albumIdColumn)
-                        val artistId = it.getLong(artistIdColumn)
+                        val artistId = it.getLong(artistIdColumn).takeIf { it != 0L } ?: UNKNOWN_ARTIST_ID
+                        val albumId = it.getLong(albumIdColumn).takeIf { it != 0L } ?: UNKNOWN_ALBUM_ID
 
                         val albumArtUri = getAlbumArtUri(albumId)
                         val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
-
-                        val albumEntry = Album(id = albumId, name = album)
-                        val artistEntry = Artist(id = artistId, name = artist)
 
                         val music = Music(
                             id = id,
@@ -106,8 +107,15 @@ class MusicRepository @Inject constructor(
                         )
 
                         musicList.add(music)
-                        artistSet.add(artistEntry)
-                        albumSet.add(albumEntry)
+
+                        if (albumId != UNKNOWN_ALBUM_ID) {
+                            val albumEntry = Album(id = albumId, name = album, albumArtUri)
+                            albumSet.add(albumEntry)
+                        }
+
+                        if (artistId != UNKNOWN_ARTIST_ID) {
+                            artistSet[artistId] = artistSet[artistId]?.copy(artUri = albumArtUri) ?: Artist(id = artistId, name = artist, artUri = albumArtUri)
+                        }
 
                     } catch (e: Exception) {
                         Log.e("MusicRepository", "Error retrieving music data: ${e.message}", e)
@@ -123,7 +131,7 @@ class MusicRepository @Inject constructor(
 
         return MusicData(
             musicList = musicList,
-            artistList = artistSet.toList(),
+            artistList = artistSet.values.toList(),
             albumList = albumSet.toList()
         )
     }
