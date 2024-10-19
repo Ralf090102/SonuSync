@@ -1,10 +1,16 @@
 package com.example.sonusync.ui.music
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
@@ -26,7 +32,9 @@ import com.google.android.material.imageview.ShapeableImageView
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MusicFragment : Fragment(R.layout.fragment_music_player) {
+class MusicFragment : Fragment(R.layout.fragment_music_player){
+
+    private lateinit var gestureDetector: GestureDetector
 
     private val musicViewModel: MusicViewModel by activityViewModels()
 
@@ -56,8 +64,24 @@ class MusicFragment : Fragment(R.layout.fragment_music_player) {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        gestureDetector = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
+                if (velocityY > 0) {
+                    hideMusicFragment()
+                    return true
+                }
+                return false
+            }
+        })
 
         initializeViews(view)
 
@@ -86,6 +110,10 @@ class MusicFragment : Fragment(R.layout.fragment_music_player) {
                 }
             )
         }
+
+        view.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+        }
     }
 
     override fun onStop() {
@@ -96,7 +124,9 @@ class MusicFragment : Fragment(R.layout.fragment_music_player) {
 
     override fun onDestroy() {
         super.onDestroy()
-        exoPlayer.release()
+        if (::exoPlayer.isInitialized) {
+            exoPlayer.release()
+        }
     }
 
     private fun initializeViews(view: View){
@@ -126,7 +156,10 @@ class MusicFragment : Fragment(R.layout.fragment_music_player) {
     }
 
     private fun setupExoPlayer(musicUri: String?) {
-        exoPlayer = ExoPlayer.Builder(requireContext()).build()
+        if (!::exoPlayer.isInitialized) {
+            exoPlayer = ExoPlayer.Builder(requireContext()).build()
+        }
+
         val mediaItem = MediaItem.fromUri(Uri.parse(musicUri))
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
@@ -226,5 +259,21 @@ class MusicFragment : Fragment(R.layout.fragment_music_player) {
         val minutes = (duration / 1000) / 60
         val seconds = (duration / 1000) % 60
         return String.format("%d:%02d", minutes, seconds)
+    }
+
+    private fun hideMusicFragment() {
+        view?.let { fragmentView ->
+            val animation = ObjectAnimator.ofFloat(fragmentView, "alpha", 1f, 0f)
+            animation.duration = 300
+
+            animation.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    super.onAnimationEnd(animation)
+                    fragmentView.visibility = View.GONE
+                }
+            })
+
+            animation.start()
+        }
     }
 }

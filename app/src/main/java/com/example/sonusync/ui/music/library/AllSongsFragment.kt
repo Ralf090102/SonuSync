@@ -21,6 +21,7 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
     private val musicViewModel: MusicViewModel by activityViewModels()
 
     private lateinit var musicAdapter: MusicAdapter
+
     private var recyclerViewState: Parcelable? = null
     private var albumName: String? = null
     private var artistName: String? = null
@@ -60,12 +61,18 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
     }
 
     override fun onMusicClick(music: Music, globalIndex: Int) {
-
         musicViewModel.selectMusicAtIndex(globalIndex)
 
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.flMusic, MusicFragment())
-            .commit()
+        val fragmentTransaction = parentFragmentManager.beginTransaction()
+
+        fragmentTransaction.setCustomAnimations(
+            R.anim.fade_in,
+            R.anim.fade_out
+        )
+
+        fragmentTransaction.replace(R.id.flMusic, MusicFragment())
+        fragmentTransaction.addToBackStack(null)
+        fragmentTransaction.commit()
     }
 
     override fun onPause() {
@@ -80,10 +87,6 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
         musicViewModel.clearFilteredMusicList()
     }
 
-    fun updateMusic(musicList: List<Music>) {
-        musicAdapter.submitList(musicList)
-    }
-
     private fun observeViewModel() {
         musicViewModel.musicList.observe(viewLifecycleOwner, Observer { musicList ->
             updateMusic(musicList)
@@ -94,5 +97,9 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
         musicViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredSongs ->
             updateMusic(filteredSongs)
         }
+    }
+
+    fun updateMusic(musicList: List<Music>) {
+        musicAdapter.submitList(musicList)
     }
 }
