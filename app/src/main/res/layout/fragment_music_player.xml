@@ -136,5 +136,4 @@
         android:text="@string/default_duration"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sbPlayback" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

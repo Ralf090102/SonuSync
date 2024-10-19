@@ -52,16 +52,16 @@ class MainActivity : AppCompatActivity() {
         bottomNav.setOnApplyWindowInsetsListener(null)
         bottomNav.setPadding(0,0,0,0)
 
-        loadFragment(LibraryFragment())
+        loadFragment(LibraryFragment(), "Library")
 
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.miLibrary -> {
-                    loadFragment(LibraryFragment())
+                    loadFragment(LibraryFragment(), "Library")
                     true
                 }
                 R.id.miSearch -> {
-                    loadFragment(SearchFragment())
+                    loadFragment(SearchFragment(), "Search")
                     true
                 }
                 R.id.miSettings -> {
@@ -74,9 +74,9 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun loadFragment(fragment: Fragment) {
+    private fun loadFragment(fragment: Fragment, tag: String) {
         val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.flFragment, fragment)
+        transaction.replace(R.id.flFragment, fragment, tag)
         transaction.commit()
     }
 

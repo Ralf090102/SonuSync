@@ -52,6 +52,8 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     private lateinit var ibShuffle: ImageButton
     private lateinit var ibRepeat: ImageButton
 
+    private var currentAlbumCover: String? = null
+
     private val handler = Handler(Looper.getMainLooper())
     private val updateRunnable = object : Runnable {
         override fun run() {
@@ -147,12 +149,15 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
         tvMusicTitle.text = title
         tvMusicArtist.text = artist
         tvTotalTime.text = duration
+        currentAlbumCover = albumArtUri
         val albumArt = Uri.parse(albumArtUri)
 
         sivAlbumCover.load(albumArt) {
             placeholder(R.drawable.default_album_cover)
             error(R.drawable.default_album_cover)
         }
+
+        showMiniMusicFragment()
     }
 
     private fun setupExoPlayer(musicUri: String?) {
@@ -275,5 +280,21 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
 
             animation.start()
         }
+    }
+
+    private fun showMiniMusicFragment() {
+        val miniMusicFragment = MiniMusicFragment().apply {
+            arguments = Bundle().apply {
+                putString("title", tvMusicTitle.text.toString())
+                putString("artist", tvMusicArtist.text.toString())
+                putString("cover", currentAlbumCover)
+            }
+        }
+
+        miniMusicFragment.setMiniExoPlayer(exoPlayer)
+
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.flMiniMusic, miniMusicFragment, "Library")
+            .commit()
     }
 }
