@@ -109,6 +109,8 @@
         android:layout_marginTop="48dp"
         android:progressTint="?attr/colorPrimary"
         android:thumbTint="?attr/colorPrimary"
+        android:clickable="true"
+        android:focusable="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -134,5 +136,4 @@
         android:text="@string/default_duration"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sbPlayback" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
