@@ -52,6 +52,8 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     private lateinit var ibShuffle: ImageButton
     private lateinit var ibRepeat: ImageButton
 
+    private lateinit var miniMusicFragment: MiniMusicFragment
+
     private var currentAlbumCover: String? = null
 
     private val handler = Handler(Looper.getMainLooper())
@@ -184,6 +186,8 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
                 exoPlayer.pause()
             else
                 exoPlayer.play()
+
+            miniMusicFragment.updatePlayPauseIcon()
         }
 
         ibNext.setOnClickListener {
@@ -283,18 +287,31 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     }
 
     private fun showMiniMusicFragment() {
-        val miniMusicFragment = MiniMusicFragment().apply {
+        miniMusicFragment = MiniMusicFragment().apply {
             arguments = Bundle().apply {
                 putString("title", tvMusicTitle.text.toString())
                 putString("artist", tvMusicArtist.text.toString())
                 putString("cover", currentAlbumCover)
             }
-        }
 
-        miniMusicFragment.setMiniExoPlayer(exoPlayer)
+            onFragmentClick = {
+                showMusicFragment()
+            }
+        }
 
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.flMiniMusic, miniMusicFragment, "Library")
             .commit()
+
+        miniMusicFragment.setMiniExoPlayer(exoPlayer)
+    }
+
+    private fun showMusicFragment() {
+        view?.let { fragmentView ->
+            fragmentView.visibility = View.VISIBLE
+            val animation = ObjectAnimator.ofFloat(fragmentView, "alpha", 0f, 1f)
+            animation.duration = 300
+            animation.start()
+        }
     }
 }
