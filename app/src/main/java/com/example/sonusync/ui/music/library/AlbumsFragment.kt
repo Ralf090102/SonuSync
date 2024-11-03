@@ -50,6 +50,7 @@ class AlbumsFragment : Fragment(R.layout.fragment_ensemble_grid), EnsembleAdapte
         }
 
         parentFragmentManager.beginTransaction()
+            .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
             .replace(R.id.flMusic, AllSongsFragment::class.java, bundle)
             .addToBackStack(null)
             .commit()

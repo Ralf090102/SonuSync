@@ -1,3 +1,7 @@
+/*
+GitHub: https://github.com/Ralf090102/SonuSync
+ */
+
 package com.example.sonusync.data.adapters
 
 import android.annotation.SuppressLint
