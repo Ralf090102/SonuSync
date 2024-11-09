@@ -2,7 +2,6 @@ package com.example.sonusync.ui.music.library
 
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -63,7 +62,6 @@ class ArtistsFragment : Fragment(R.layout.fragment_ensemble_grid), EnsembleAdapt
     }
 
     fun updateArtists(artistList: List<Artist>) {
-        Log.d ("TestLog", "Artist List Size: ${artistList.size}")
         ensembleAdapter.submitList(artistList)
     }
 }

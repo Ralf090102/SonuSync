@@ -16,7 +16,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.ui.music.LibraryFragment
-import com.example.sonusync.ui.music.SearchFragment
+import com.example.sonusync.ui.search.SearchFragment
 import com.example.sonusync.ui.settings.SettingsActivity
 import com.example.sonusync.viewmodel.EnsembleViewModel
 import com.example.sonusync.viewmodel.SearchViewModel

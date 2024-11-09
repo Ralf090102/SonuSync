@@ -44,6 +44,7 @@ class MusicAdapter(
 
     override fun getItemCount(): Int = currentList.size
 
+    @SuppressLint("NotifyDataSetChanged")
     fun submitGlobalList(globalList: List<Music>) {
         this.globalMusicList = globalList
         notifyDataSetChanged()
