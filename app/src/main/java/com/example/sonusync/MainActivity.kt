@@ -19,6 +19,7 @@ import com.example.sonusync.ui.music.LibraryFragment
 import com.example.sonusync.ui.music.SearchFragment
 import com.example.sonusync.ui.settings.SettingsActivity
 import com.example.sonusync.viewmodel.EnsembleViewModel
+import com.example.sonusync.viewmodel.SearchViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -26,6 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val musicViewModel: MusicViewModel by viewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
     private val ensembleViewModel: EnsembleViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +40,7 @@ class MainActivity : AppCompatActivity() {
             requestPermission()
         } else {
             musicViewModel.loadMusic()
+            searchViewModel.loadMusic()
             ensembleViewModel.loadEnsembles()
         }
 
@@ -109,6 +112,7 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 100) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 musicViewModel.insertMusic()
+                searchViewModel.insertMusic()
                 ensembleViewModel.insertEnsembles()
             } else {
                 Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
