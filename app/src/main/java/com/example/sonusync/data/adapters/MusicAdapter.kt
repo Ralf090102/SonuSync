@@ -6,6 +6,7 @@ package com.example.sonusync.data.adapters
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,13 +37,16 @@ class MusicAdapter(
 
     override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
         val music = getItem(position)
-
         val globalIndex = globalMusicList.indexOfFirst { it.id == music.id }
 
         holder.bind(music, musicClickListener, globalIndex)
     }
 
     override fun getItemCount(): Int = currentList.size
+
+    fun submitFilteredList(filteredList: List<Music>) {
+        submitList(filteredList)
+    }
 
     @SuppressLint("NotifyDataSetChanged")
     fun submitGlobalList(globalList: List<Music>) {

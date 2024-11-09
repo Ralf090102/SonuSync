@@ -1,15 +1,14 @@
 package com.example.sonusync.ui.search
 
 import android.os.Bundle
+import android.os.Parcelable
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
@@ -24,17 +23,21 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
     private val searchViewModel: SearchViewModel by activityViewModels()
     private lateinit var musicAdapter: MusicAdapter
 
+    private var recyclerViewState: Parcelable? = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val editTextSearch = view.findViewById<EditText>(R.id.etSearch)
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvMusic)
+        recyclerView.layoutManager = LinearLayoutManager(context)
 
-        musicAdapter = MusicAdapter(this)
-        recyclerView.adapter = musicAdapter
+        musicAdapter = MusicAdapter(this).apply {
+            recyclerView.adapter = this
+        }
 
         searchViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredMusicList ->
-            musicAdapter.submitList(filteredMusicList)
+            musicAdapter.submitFilteredList(filteredMusicList)
         }
 
         searchViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
@@ -49,6 +52,13 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {}
         })
+    }
+
+    override fun onPause() {
+        super.onPause()
+        view?.findViewById<RecyclerView>(R.id.rvAllSongs)?.layoutManager?.let { layoutManager ->
+            recyclerViewState = layoutManager.onSaveInstanceState()
+        }
     }
 
     override fun onMusicClick(music: Music, globalIndex: Int) {

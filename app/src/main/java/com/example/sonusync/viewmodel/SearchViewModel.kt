@@ -52,7 +52,6 @@ class SearchViewModel @Inject constructor(
                     it.artist.contains(query, ignoreCase = true)
             }
         }
-        Log.d("TestLogg", "filterSize: ${filteredMusicList.value}")
     }
 
     fun setSearchQuery(query: String) {
