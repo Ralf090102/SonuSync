@@ -28,15 +28,15 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
         val editTextSearch = view.findViewById<EditText>(R.id.etSearch)
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvMusic)
 
-        val musicAll = searchViewModel.musicList.value ?: emptyList()
-        val filteredMusic = searchViewModel.filteredMusicList.value ?: emptyList()
+        musicAdapter = MusicAdapter(this)
+        recyclerView.adapter = musicAdapter
 
-        musicAdapter = MusicAdapter(filteredMusic, musicAll, this).apply{
-            recyclerView.adapter = this
+        searchViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredMusicList ->
+            musicAdapter.submitList(filteredMusicList)
         }
 
-        searchViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredList ->
-            musicAdapter.submitList(filteredList)
+        searchViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
+            musicAdapter.submitGlobalList(musicList)
         }
 
         editTextSearch.addTextChangedListener(object : TextWatcher {

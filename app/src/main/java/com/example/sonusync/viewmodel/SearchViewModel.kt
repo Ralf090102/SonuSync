@@ -52,6 +52,7 @@ class SearchViewModel @Inject constructor(
                     it.artist.contains(query, ignoreCase = true)
             }
         }
+        Log.d("TestLogg", "filterSize: ${filteredMusicList.value}")
     }
 
     fun setSearchQuery(query: String) {
@@ -66,7 +67,7 @@ class SearchViewModel @Inject constructor(
                 musicRepository.saveMusicListToLocal(musicList)
                 loadMusic()
             } catch (e: Exception) {
-                Log.e("MusicViewModel", "Error inserting music", e)
+                Log.e("SearchViewModel", "Error inserting music", e)
             }
         }
     }
@@ -77,7 +78,7 @@ class SearchViewModel @Inject constructor(
                 val music = musicRepository.getMusicListFromLocal()
                 _musicList.postValue(music)
             } catch (e: Exception) {
-                Log.e("MusicViewModel", "Error loading music from database", e)
+                Log.e("SearchViewModel", "Error loading music from database", e)
             }
         }
     }

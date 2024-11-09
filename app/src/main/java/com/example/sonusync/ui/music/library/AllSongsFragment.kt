@@ -32,30 +32,27 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
         albumName = arguments?.getString("album_name")
         artistName = arguments?.getString("artist_name")
 
-        val musicAll = musicViewModel.musicList.value ?: emptyList()
-
         val recyclerView: RecyclerView = view.findViewById(R.id.rvAllSongs)
         recyclerView.layoutManager = LinearLayoutManager(context)
+
+        musicAdapter = MusicAdapter(this).apply {
+            recyclerView.adapter = this
+        }
+
+        musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
+            musicAdapter.submitGlobalList(musicList)
+            updateMusic(musicList)
+        }
 
         if (albumName != null) {
             musicViewModel.filterMusicByAlbum(albumName!!)
             musicViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredMusicList ->
-                musicAdapter = MusicAdapter(filteredMusicList, musicAll, this).apply {
-                    recyclerView.adapter = this
-                }
+                updateMusic(filteredMusicList)
             }
         } else if (artistName != null) {
             musicViewModel.filterMusicByArtist(artistName!!)
             musicViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredMusicList ->
-                musicAdapter = MusicAdapter(filteredMusicList, musicAll, this).apply {
-                    recyclerView.adapter = this
-                }
-            }
-        } else {
-            musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-                musicAdapter = MusicAdapter(musicList, musicList, this).apply {
-                    recyclerView.adapter = this
-                }
+                updateMusic(filteredMusicList)
             }
         }
     }

@@ -19,10 +19,10 @@ import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
 
 class MusicAdapter(
-    private val localMusicList: List<Music>,
-    private val globalMusicList: List<Music>,
     private val musicClickListener: MusicClickListener
 ) : ListAdapter<Music, MusicAdapter.MusicViewHolder>(MusicDiffCallback()) {
+
+    private var globalMusicList: List<Music> = emptyList()
 
     interface MusicClickListener {
         fun onMusicClick(music: Music, globalIndex: Int)
@@ -35,15 +35,19 @@ class MusicAdapter(
     }
 
     override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
-        val music = localMusicList[position]
+        val music = getItem(position)
 
         val globalIndex = globalMusicList.indexOfFirst { it.id == music.id }
 
         holder.bind(music, musicClickListener, globalIndex)
-
     }
 
-    override fun getItemCount(): Int = localMusicList.size
+    override fun getItemCount(): Int = currentList.size
+
+    fun submitGlobalList(globalList: List<Music>) {
+        this.globalMusicList = globalList
+        notifyDataSetChanged()
+    }
 
     class MusicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.tvItemTitle)
