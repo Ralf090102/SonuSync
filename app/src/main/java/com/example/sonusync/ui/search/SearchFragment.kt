@@ -1,16 +1,16 @@
 package com.example.sonusync.ui.search
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.os.Parcelable
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import android.widget.FrameLayout
-import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
@@ -66,11 +66,16 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
         }
     }
 
-    @OptIn(UnstableApi::class)
+    @SuppressLint("ServiceCast")
     override fun onMusicClick(music: Music, globalIndex: Int) {
         musicViewModel.selectMusicAtIndex(globalIndex)
 
-        val flMusic = requireActivity().findViewById<FrameLayout>(R.id.flMusic)
+        val inputMethodManager = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val currentFocusView = requireActivity().currentFocus
+        if (currentFocusView != null) {
+            inputMethodManager.hideSoftInputFromWindow(currentFocusView.windowToken, 0)
+        }
+
         val fragmentTransaction = requireActivity().supportFragmentManager.beginTransaction()
 
         fragmentTransaction.setCustomAnimations(
