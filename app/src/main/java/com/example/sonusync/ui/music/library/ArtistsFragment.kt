@@ -2,7 +2,6 @@ package com.example.sonusync.ui.music.library
 
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -13,6 +12,7 @@ import com.example.sonusync.R
 import com.example.sonusync.data.adapters.EnsembleAdapter
 import com.example.sonusync.data.model.Artist
 import com.example.sonusync.data.model.Ensemble
+import com.example.sonusync.ui.music.LibraryFragment
 import com.example.sonusync.viewmodel.EnsembleViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,12 +25,6 @@ class ArtistsFragment : Fragment(R.layout.fragment_ensemble_grid), EnsembleAdapt
 
     private var recyclerViewState: Parcelable? = null
 
-    override fun onPause() {
-        super.onPause()
-        view?.findViewById<RecyclerView>(R.id.rvEnsemble)?.layoutManager?.let { layoutManager ->
-            recyclerViewState = layoutManager.onSaveInstanceState()
-        }
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -49,10 +43,22 @@ class ArtistsFragment : Fragment(R.layout.fragment_ensemble_grid), EnsembleAdapt
             putString("artist_name", ensemble.name)
         }
 
+        val filteredSongsFragment = FilteredSongsFragment().apply {
+            arguments = bundle
+        }
+
         parentFragmentManager.beginTransaction()
-            .replace(R.id.flMusic, AllSongsFragment::class.java, bundle)
+            .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
+            .replace(R.id.flContentContainer, filteredSongsFragment)
             .addToBackStack(null)
             .commit()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        view?.findViewById<RecyclerView>(R.id.rvEnsemble)?.layoutManager?.let { layoutManager ->
+            recyclerViewState = layoutManager.onSaveInstanceState()
+        }
     }
 
     private fun observeViewModel() {
@@ -62,7 +68,6 @@ class ArtistsFragment : Fragment(R.layout.fragment_ensemble_grid), EnsembleAdapt
     }
 
     fun updateArtists(artistList: List<Artist>) {
-        Log.d ("TestLog", "Artist List Size: ${artistList.size}")
         ensembleAdapter.submitList(artistList)
     }
 }

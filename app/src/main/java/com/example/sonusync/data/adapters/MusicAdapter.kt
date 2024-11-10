@@ -1,7 +1,12 @@
+/*
+GitHub: https://github.com/Ralf090102/SonuSync
+ */
+
 package com.example.sonusync.data.adapters
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,10 +20,10 @@ import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
 
 class MusicAdapter(
-    private val localMusicList: List<Music>,
-    private val globalMusicList: List<Music>,
     private val musicClickListener: MusicClickListener
 ) : ListAdapter<Music, MusicAdapter.MusicViewHolder>(MusicDiffCallback()) {
+
+    private var globalMusicList: List<Music> = emptyList()
 
     interface MusicClickListener {
         fun onMusicClick(music: Music, globalIndex: Int)
@@ -31,15 +36,23 @@ class MusicAdapter(
     }
 
     override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
-        val music = localMusicList[position]
-
+        val music = getItem(position)
         val globalIndex = globalMusicList.indexOfFirst { it.id == music.id }
 
         holder.bind(music, musicClickListener, globalIndex)
-
     }
 
-    override fun getItemCount(): Int = localMusicList.size
+    override fun getItemCount(): Int = currentList.size
+
+    fun submitFilteredList(filteredList: List<Music>) {
+        submitList(filteredList)
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun submitGlobalList(globalList: List<Music>) {
+        this.globalMusicList = globalList
+        notifyDataSetChanged()
+    }
 
     class MusicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.tvItemTitle)

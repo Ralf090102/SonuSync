@@ -13,12 +13,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupWithNavController
 import com.example.sonusync.viewmodel.MusicViewModel
-import com.example.sonusync.ui.music.LibraryFragment
-import com.example.sonusync.ui.music.SearchFragment
 import com.example.sonusync.ui.settings.SettingsActivity
 import com.example.sonusync.viewmodel.EnsembleViewModel
+import com.example.sonusync.viewmodel.SearchViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -26,6 +26,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private val musicViewModel: MusicViewModel by viewModels()
+    private val searchViewModel: SearchViewModel by viewModels()
     private val ensembleViewModel: EnsembleViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
             requestPermission()
         } else {
             musicViewModel.loadMusic()
+            searchViewModel.loadMusic()
             ensembleViewModel.loadEnsembles()
         }
 
@@ -47,38 +49,27 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.fcvNavHostFragment) as NavHostFragment
+        val navController = navHostFragment.navController
+
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+        bottomNav.setupWithNavController(navController)
 
         bottomNav.setOnApplyWindowInsetsListener(null)
         bottomNav.setPadding(0,0,0,0)
 
-        loadFragment(LibraryFragment(), "Library")
-
         bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.miLibrary -> {
-                    loadFragment(LibraryFragment(), "Library")
-                    true
-                }
-                R.id.miSearch -> {
-                    loadFragment(SearchFragment(), "Search")
-                    true
-                }
-                R.id.miSettings -> {
-                    startActivity(Intent(this, SettingsActivity::class.java))
-                    true
-                }
-                else -> false
+            if (item.itemId == R.id.settingsActivity) {
+                startActivity(Intent(this, SettingsActivity::class.java))
+                true
+            } else {
+                navController.navigate(item.itemId)
+                true
             }
         }
-
     }
 
-    private fun loadFragment(fragment: Fragment, tag: String) {
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.flFragment, fragment, tag)
-        transaction.commit()
-    }
 
     private fun hideStatusBar() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
@@ -109,6 +100,7 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 100) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 musicViewModel.insertMusic()
+                searchViewModel.insertMusic()
                 ensembleViewModel.insertEnsembles()
             } else {
                 Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()

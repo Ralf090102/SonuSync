@@ -45,12 +45,32 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
             }
         }.attach()
 
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                handleTabSelection()
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+                handleTabSelection()
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+            private fun handleTabSelection() {
+                childFragmentManager.findFragmentById(R.id.flContentContainer)?.let { fragment ->
+                    childFragmentManager.beginTransaction().remove(fragment).commit()
+
+                    viewPager.animate().alpha(0f).setDuration(0).withEndAction {
+                        viewPager.alpha = 0f
+                        viewPager.animate().alpha(1f).setDuration(300).start()
+                    }.start()
+                }
+            }
+        })
+
         musicViewModel.musicList.observe(viewLifecycleOwner) { musicList -> notifyMusicFragments(musicList) }
-
         ensembleViewModel.artists.observe(viewLifecycleOwner) { artists -> notifyArtistFragments(artists) }
-
         ensembleViewModel.albums.observe(viewLifecycleOwner) { albums -> notifyAlbumFragments(albums) }
-
         ensembleViewModel.playlists.observe(viewLifecycleOwner) { playlists -> notifyPlaylistFragments(playlists) }
     }
 

@@ -1,8 +1,11 @@
 package com.example.sonusync.data.model
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(tableName = "music")
 data class Music (
     @PrimaryKey val id: Long,
@@ -17,4 +20,4 @@ data class Music (
     val path: String,
     val albumArtUri: String?,
     val uri: String
-)
+) : Parcelable
