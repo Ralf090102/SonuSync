@@ -1,6 +1,5 @@
 package com.example.sonusync.viewmodel
 
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -16,16 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val musicRepository: MusicRepository,
-    private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
-
-    companion object {
-        private const val PREF_CURRENT_MUSIC_INDEX = "pref_current_music_index"
-    }
-
-    private val _currentMusicIndex = MutableLiveData<Int>().apply { value = sharedPreferences.getInt(
-        PREF_CURRENT_MUSIC_INDEX, 0) }
-    val currentMusicIndex: LiveData<Int> get() = _currentMusicIndex
 
     private val _musicList = MutableLiveData<List<Music>>(emptyList())
     val musicList: LiveData<List<Music>> get() = _musicList
@@ -79,16 +69,6 @@ class SearchViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("SearchViewModel", "Error loading music from database", e)
             }
-        }
-    }
-
-    fun selectMusicAtIndex(index: Int) {
-        if (index in 0 until (_musicList.value?.size ?: 0)) {
-            _currentMusicIndex.value = index
-
-            sharedPreferences.edit()
-                .putInt(SearchViewModel.PREF_CURRENT_MUSIC_INDEX, index)
-                .apply()
         }
     }
 }

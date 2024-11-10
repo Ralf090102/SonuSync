@@ -6,14 +6,18 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
+import android.widget.FrameLayout
+import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
 import com.example.sonusync.data.model.Music
 import com.example.sonusync.ui.music.MusicFragment
+import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.viewmodel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,6 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicClickListener {
 
     private val searchViewModel: SearchViewModel by activityViewModels()
+    private val musicViewModel: MusicViewModel by activityViewModels()
     private lateinit var musicAdapter: MusicAdapter
 
     private var recyclerViewState: Parcelable? = null
@@ -61,13 +66,20 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
         }
     }
 
+    @OptIn(UnstableApi::class)
     override fun onMusicClick(music: Music, globalIndex: Int) {
-        searchViewModel.selectMusicAtIndex(globalIndex)
+        musicViewModel.selectMusicAtIndex(globalIndex)
 
-        parentFragmentManager.beginTransaction()
-            .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
-            .replace(R.id.flMusic, MusicFragment())
-            .addToBackStack(null)
-            .commit()
+        val flMusic = requireActivity().findViewById<FrameLayout>(R.id.flMusic)
+        val fragmentTransaction = requireActivity().supportFragmentManager.beginTransaction()
+
+        fragmentTransaction.setCustomAnimations(
+            R.anim.fade_in,
+            R.anim.fade_out
+        )
+
+        fragmentTransaction.replace(R.id.flMusic, MusicFragment())
+        fragmentTransaction.addToBackStack(null)
+        fragmentTransaction.commit()
     }
 }

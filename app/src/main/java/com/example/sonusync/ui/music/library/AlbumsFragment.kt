@@ -48,9 +48,13 @@ class AlbumsFragment : Fragment(R.layout.fragment_ensemble_grid), EnsembleAdapte
             putString("album_name", ensemble.name)
         }
 
+        val allSongsFragment = AllSongsFragment().apply {
+            arguments = bundle
+        }
+
         parentFragmentManager.beginTransaction()
             .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
-            .replace(R.id.flMusic, AllSongsFragment::class.java, bundle)
+            .replace(R.id.flMusic, allSongsFragment)
             .addToBackStack(null)
             .commit()
     }

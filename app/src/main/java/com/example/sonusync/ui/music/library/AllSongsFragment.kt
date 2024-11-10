@@ -3,6 +3,7 @@ package com.example.sonusync.ui.music.library
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.View
+import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
@@ -60,7 +61,8 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
     override fun onMusicClick(music: Music, globalIndex: Int) {
         musicViewModel.selectMusicAtIndex(globalIndex)
 
-        val fragmentTransaction = parentFragmentManager.beginTransaction()
+        val flMusic = requireActivity().findViewById<FrameLayout>(R.id.flMusic)
+        val fragmentTransaction = requireActivity().supportFragmentManager.beginTransaction()
 
         fragmentTransaction.setCustomAnimations(
             R.anim.fade_in,
