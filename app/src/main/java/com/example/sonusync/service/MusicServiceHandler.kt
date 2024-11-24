@@ -85,7 +85,7 @@ class MusicServiceHandler @Inject constructor(
         }
     }
 
-    suspend fun onPlayerEvents(
+    fun onPlayerEvents(
         playerEvent: PlayerEvent,
         selectedAudioIndex: Int = -1,
         seekPosition: Long = 0,
@@ -107,10 +107,6 @@ class MusicServiceHandler @Inject constructor(
                 }
             }
 
-            PlayerEvent.PlayPause -> playOrPause()
-            PlayerEvent.Backward -> exoPlayer.seekBack()
-            PlayerEvent.Forward -> exoPlayer.seekForward()
-            PlayerEvent.SeekTo -> exoPlayer.seekTo(seekPosition)
             PlayerEvent.SelectedAudioChange -> {
                 when (selectedAudioIndex) {
                     exoPlayer.currentMediaItemIndex -> {
@@ -137,6 +133,10 @@ class MusicServiceHandler @Inject constructor(
 
             PlayerEvent.Shuffle -> toggleShuffle()
             PlayerEvent.Repeat -> toggleRepeatMode()
+            PlayerEvent.PlayPause -> playOrPause()
+            PlayerEvent.Backward -> exoPlayer.seekBack()
+            PlayerEvent.Forward -> exoPlayer.seekForward()
+            PlayerEvent.SeekTo -> exoPlayer.seekTo(seekPosition)
         }
     }
 
@@ -159,7 +159,7 @@ class MusicServiceHandler @Inject constructor(
         }
     }
 
-    private suspend fun playOrPause() {
+    private fun playOrPause() {
         if (exoPlayer.isPlaying) {
             exoPlayer.pause()
             stopProgressUpdate()
