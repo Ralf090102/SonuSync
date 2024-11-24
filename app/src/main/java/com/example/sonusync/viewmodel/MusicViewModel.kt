@@ -5,6 +5,9 @@ import android.util.Log
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,18 +40,26 @@ class MusicViewModel  @Inject constructor(
     var isPlaying by savedStateHandle.saveable { mutableStateOf(false) }
     var selectedMusic by savedStateHandle.saveable { mutableStateOf<Music?>(null) }
     var musicList by savedStateHandle.saveable { mutableStateOf(listOf<Music>()) }
-    var filteredMusicList by savedStateHandle.saveable { mutableStateOf(listOf<Music>()) }
     var isShuffleEnabled by savedStateHandle.saveable { mutableStateOf(musicServiceHandler.getShuffleMode()) }
     var repeatMode by savedStateHandle.saveable { mutableStateOf(musicServiceHandler.getRepeatMode()) }
 
     private val _uiState: MutableStateFlow<UIState> = MutableStateFlow(UIState.Initial)
     val uiState: StateFlow<UIState> = _uiState.asStateFlow()
 
+    private val _searchQuery = MutableLiveData("")
+    val searchQuery: LiveData<String> = _searchQuery
+
     private val _musicFlow = MutableStateFlow(musicList)
     val musicFlow: StateFlow<List<Music>> get() = _musicFlow
 
-    private val _filteredMusicFlow = MutableStateFlow(filteredMusicList)
+    private val _filteredMusicFlow = MutableStateFlow<List<Music>>(emptyList())
     val filteredMusicFlow: StateFlow<List<Music>> get() = _filteredMusicFlow
+
+    private val _queryMusicList = MediatorLiveData<List<Music>>()
+    val queryMusicList: LiveData<List<Music>> = _queryMusicList
+
+    private val _ldIsPlaying = MutableLiveData<Boolean>()
+    val ldIsPlaying: LiveData<Boolean> = _ldIsPlaying
 
     sealed class UIEvents {
         object PlayPause : UIEvents()
@@ -69,6 +80,9 @@ class MusicViewModel  @Inject constructor(
     }
 
     init {
+        _queryMusicList.addSource(_searchQuery) { filterMusicByQuery() }
+        _ldIsPlaying.value = musicServiceHandler.getShuffleMode()
+
         insertMusic()
         observeMusicServiceState()
     }
@@ -147,16 +161,20 @@ class MusicViewModel  @Inject constructor(
         }
     }
 
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
     fun filterMusicByAlbum(albumName: String) {
-        filteredMusicList = musicList.filter { it.album == albumName }
+        _filteredMusicFlow.value = musicList.filter { it.album == albumName }
     }
 
     fun filterMusicByArtist(artistName: String) {
-        filteredMusicList = musicList.filter { it.artist == artistName }
+        _filteredMusicFlow.value = musicList.filter { it.artist == artistName }
     }
 
     fun clearFilteredMusicList() {
-        filteredMusicList = emptyList()
+        _filteredMusicFlow.value = emptyList()
     }
 
     @SuppressLint("DefaultLocale")
@@ -167,14 +185,30 @@ class MusicViewModel  @Inject constructor(
         return String.format("%02d:%02d", minute, seconds)
     }
 
+    private fun filterMusicByQuery() {
+        val query = _searchQuery.value ?: ""
+        _queryMusicList.value = if (query.isBlank()) {
+            musicList
+        } else {
+            musicList.filter {
+                it.title.contains(query, ignoreCase = true) ||
+                        it.album.contains(query, ignoreCase = true) ||
+                        it.artist.contains(query, ignoreCase = true)
+            }
+        }
+    }
+
     private fun observeMusicServiceState() {
         viewModelScope.launch {
             musicServiceHandler.musicState.collectLatest { mediaState ->
                 when (mediaState) {
                     MusicServiceHandler.MusicState.Initial -> _uiState.value = UIState.Initial
                     is MusicServiceHandler.MusicState.Buffering -> updateProgressState(mediaState.progress)
-                    is MusicServiceHandler.MusicState.Playing -> isPlaying = mediaState.isPlaying
                     is MusicServiceHandler.MusicState.Progress -> updateProgressState(mediaState.progress)
+                    is MusicServiceHandler.MusicState.Playing -> {
+                        isPlaying = mediaState.isPlaying
+                        _ldIsPlaying.value = mediaState.isPlaying
+                    }
                     is MusicServiceHandler.MusicState.CurrentPlaying -> {
                         if (mediaState.mediaItemIndex in musicList.indices) {
                             selectedMusic = musicList[mediaState.mediaItemIndex]

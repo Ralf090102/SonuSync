@@ -11,20 +11,23 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
 import com.example.sonusync.data.model.Music
+import com.example.sonusync.service.ServiceStarter
 import com.example.sonusync.ui.music.MusicFragment
 import com.example.sonusync.viewmodel.MusicViewModel
-import com.example.sonusync.viewmodel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicClickListener {
 
-    private val searchViewModel: SearchViewModel by activityViewModels()
     private val musicViewModel: MusicViewModel by activityViewModels()
     private lateinit var musicAdapter: MusicAdapter
 
@@ -41,17 +44,11 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
             recyclerView.adapter = this
         }
 
-        searchViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredMusicList ->
-            musicAdapter.submitFilteredList(filteredMusicList)
-        }
-
-        searchViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-            musicAdapter.submitGlobalList(musicList)
-        }
+        observeFilteredMusic()
 
         editTextSearch.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                searchViewModel.setSearchQuery(s.toString())
+                musicViewModel.setSearchQuery(s.toString())
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -67,8 +64,8 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
     }
 
     @SuppressLint("ServiceCast")
-    override fun onMusicClick(music: Music, globalIndex: Int) {
-        musicViewModel.selectMusicAtIndex(globalIndex)
+    override fun onMusicClick(music: Music) {
+        (activity as? ServiceStarter)?.startMusicService()
 
         val inputMethodManager = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         val currentFocusView = requireActivity().currentFocus
@@ -86,5 +83,11 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
         fragmentTransaction.replace(R.id.flMusic, MusicFragment())
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
+    }
+
+    private fun observeFilteredMusic() {
+        musicViewModel.queryMusicList.observe(viewLifecycleOwner) { filteredList ->
+            musicAdapter.submitList(filteredList)
+        }
     }
 }

@@ -7,18 +7,20 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.media3.exoplayer.ExoPlayer
 import coil.load
 import com.example.sonusync.R
+import com.example.sonusync.viewmodel.MusicViewModel
 
 class MiniMusicFragment : Fragment(R.layout.fragment_mini_music_player) {
+
+    private val musicViewModel: MusicViewModel by activityViewModels()
 
     private lateinit var ivMiniMusicCover: ImageView
     private lateinit var tvMiniMusicTitle: TextView
     private lateinit var tvMiniMusicArtist: TextView
     private lateinit var ibMiniPlayPause: ImageButton
-
-    private var exoPlayer: ExoPlayer? = null
 
     var onFragmentClick: (() -> Unit)? = null
 
@@ -38,11 +40,15 @@ class MiniMusicFragment : Fragment(R.layout.fragment_mini_music_player) {
             )
         }
 
-        ibMiniPlayPause.setOnClickListener { togglePlayPause() }
+        ibMiniPlayPause.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.PlayPause)
+        }
 
         view.setOnClickListener {
             onFragmentClick?.invoke()
         }
+
+        observeMusicState()
     }
 
     private fun updateMiniMusicUI(title: String, artist: String, cover: String?) {
@@ -56,25 +62,16 @@ class MiniMusicFragment : Fragment(R.layout.fragment_mini_music_player) {
         tvMiniMusicTitle.text = title
         tvMiniMusicArtist.text = artist
     }
-    private fun togglePlayPause() {
-        exoPlayer?.let {
-            if (it.isPlaying) {
-                it.pause()
-            } else {
-                it.play()
-            }
-            updatePlayPauseIcon()
+
+    private fun observeMusicState() {
+        musicViewModel.ldIsPlaying.observe(viewLifecycleOwner) { isPlaying ->
+            updatePlayPauseIcon(isPlaying)
         }
     }
 
-
-    fun updatePlayPauseIcon() {
+    private fun updatePlayPauseIcon(isPlaying: Boolean) {
         ibMiniPlayPause.setImageResource(
-            if (exoPlayer?.isPlaying == true) R.drawable.ic_music_pause_mini else R.drawable.ic_music_play_mini
+            if (isPlaying) R.drawable.ic_music_pause_mini else R.drawable.ic_music_play_mini
         )
-    }
-
-    fun setMiniExoPlayer(exoPlayer: ExoPlayer) {
-        this.exoPlayer = exoPlayer
     }
 }

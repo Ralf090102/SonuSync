@@ -6,6 +6,7 @@ package com.example.sonusync.data.adapters
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
+import java.util.concurrent.TimeUnit
 
 class MusicAdapter(
     private val musicClickListener: MusicClickListener
@@ -63,9 +65,10 @@ class MusicAdapter(
 
         @SuppressLint("DefaultLocale")
         private fun formatDuration(duration: Long): String {
-            val minutes = (duration / 1000) / 60
+            val minute = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
             val seconds = (duration / 1000) % 60
-            return String.format("%d:%02d", minutes, seconds)
+
+            return String.format("%02d:%02d", minute, seconds)
         }
     }
 

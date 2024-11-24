@@ -70,8 +70,7 @@ class FilteredSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicA
 
     override fun onPause() {
         super.onPause()
-        recyclerViewState = view?.findViewById<RecyclerView>(R.id.rvAllSongs)
-            ?.layoutManager?.onSaveInstanceState()
+        recyclerViewState = view?.findViewById<RecyclerView>(R.id.rvAllSongs)?.layoutManager?.onSaveInstanceState()
     }
 
     override fun onDestroyView() {

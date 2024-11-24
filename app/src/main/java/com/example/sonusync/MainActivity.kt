@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -20,7 +21,6 @@ import com.example.sonusync.service.ServiceStarter
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.ui.settings.SettingsActivity
 import com.example.sonusync.viewmodel.EnsembleViewModel
-import com.example.sonusync.viewmodel.SearchViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -28,7 +28,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity(), ServiceStarter {
 
     private val musicViewModel: MusicViewModel by viewModels()
-    private val searchViewModel: SearchViewModel by viewModels()
     private val ensembleViewModel: EnsembleViewModel by viewModels()
 
     private var isServiceRunning = false
@@ -43,7 +42,6 @@ class MainActivity : AppCompatActivity(), ServiceStarter {
             requestPermission()
         } else {
             musicViewModel.loadMusic()
-            searchViewModel.loadMusic()
             ensembleViewModel.loadEnsembles()
         }
 
@@ -119,7 +117,6 @@ class MainActivity : AppCompatActivity(), ServiceStarter {
         if (requestCode == 100) {
             if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 musicViewModel.insertMusic()
-                searchViewModel.insertMusic()
                 ensembleViewModel.insertEnsembles()
             } else {
                 Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
