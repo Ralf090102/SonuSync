@@ -19,8 +19,8 @@ import javax.inject.Inject
 class MusicServiceHandler @Inject constructor(
     private val exoPlayer: ExoPlayer,
 ) : Player.Listener {
-    private val _audioState: MutableStateFlow<AudioState> = MutableStateFlow(AudioState.Initial)
-    val audioState: StateFlow<AudioState> = _audioState.asStateFlow()
+    private val _musicState: MutableStateFlow<MusicState> = MutableStateFlow(MusicState.Initial)
+    val musicState: StateFlow<MusicState> = _musicState.asStateFlow()
 
     private var isShuffleEnabled = false
     private var repeatMode: RepeatMode = RepeatMode.ALL
@@ -42,13 +42,13 @@ class MusicServiceHandler @Inject constructor(
         data class UpdateProgress(val newProgress: Float) : PlayerEvent()
     }
 
-    sealed class AudioState {
-        object Initial : AudioState()
-        data class Ready(val duration: Long) : AudioState()
-        data class Progress(val progress: Long) : AudioState()
-        data class Buffering(val progress: Long) : AudioState()
-        data class Playing(val isPlaying: Boolean) : AudioState()
-        data class CurrentPlaying(val mediaItemIndex: Int) : AudioState()
+    sealed class MusicState {
+        object Initial : MusicState()
+        data class Ready(val duration: Long) : MusicState()
+        data class Progress(val progress: Long) : MusicState()
+        data class Buffering(val progress: Long) : MusicState()
+        data class Playing(val isPlaying: Boolean) : MusicState()
+        data class CurrentPlaying(val mediaItemIndex: Int) : MusicState()
     }
 
     init {
@@ -63,6 +63,26 @@ class MusicServiceHandler @Inject constructor(
     fun setMediaItemList(mediaItems: List<MediaItem>) {
         exoPlayer.setMediaItems(mediaItems)
         exoPlayer.prepare()
+    }
+
+    fun getShuffleMode() : Boolean {
+        return isShuffleEnabled
+    }
+
+    fun getRepeatMode() : RepeatMode {
+        return repeatMode
+    }
+
+    fun toggleShuffle() {
+        isShuffleEnabled = !isShuffleEnabled
+    }
+
+    fun toggleRepeatMode() {
+        repeatMode = when (repeatMode) {
+            RepeatMode.OFF -> RepeatMode.ONE
+            RepeatMode.ONE -> RepeatMode.ALL
+            RepeatMode.ALL -> RepeatMode.OFF
+        }
     }
 
     suspend fun onPlayerEvents(
@@ -99,7 +119,7 @@ class MusicServiceHandler @Inject constructor(
 
                     else -> {
                         exoPlayer.seekToDefaultPosition(selectedAudioIndex)
-                        _audioState.value = AudioState.Playing(
+                        _musicState.value = MusicState.Playing(
                             isPlaying = true
                         )
                         exoPlayer.playWhenReady = true
@@ -122,32 +142,20 @@ class MusicServiceHandler @Inject constructor(
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         when (playbackState) {
-            ExoPlayer.STATE_BUFFERING -> _audioState.value = AudioState.Buffering(exoPlayer.currentPosition)
-            ExoPlayer.STATE_READY -> _audioState.value = AudioState.Ready(exoPlayer.duration)
+            ExoPlayer.STATE_BUFFERING -> _musicState.value = MusicState.Buffering(exoPlayer.currentPosition)
+            ExoPlayer.STATE_READY -> _musicState.value = MusicState.Ready(exoPlayer.duration)
             Player.STATE_ENDED -> handleEndOfPlayback()
             Player.STATE_IDLE -> return
         }
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
-        _audioState.value = AudioState.Playing(isPlaying = isPlaying)
-        _audioState.value = AudioState.CurrentPlaying(exoPlayer.currentMediaItemIndex)
+        _musicState.value = MusicState.Playing(isPlaying = isPlaying)
+        _musicState.value = MusicState.CurrentPlaying(exoPlayer.currentMediaItemIndex)
         if (isPlaying) {
             scope.launch { startProgressUpdate() }
         } else {
             stopProgressUpdate()
-        }
-    }
-
-    private fun toggleShuffle() {
-        isShuffleEnabled = !isShuffleEnabled
-    }
-
-    private fun toggleRepeatMode() {
-        repeatMode = when (repeatMode) {
-            RepeatMode.OFF -> RepeatMode.ONE
-            RepeatMode.ONE -> RepeatMode.ALL
-            RepeatMode.ALL -> RepeatMode.OFF
         }
     }
 
@@ -157,7 +165,7 @@ class MusicServiceHandler @Inject constructor(
             stopProgressUpdate()
         } else {
             exoPlayer.play()
-            _audioState.value = AudioState.Playing(isPlaying = true)
+            _musicState.value = MusicState.Playing(isPlaying = true)
             startProgressUpdate()
         }
     }
@@ -167,7 +175,7 @@ class MusicServiceHandler @Inject constructor(
         if (mediaItemsCount > 0) {
             val randomIndex = (0 until mediaItemsCount).random()
             exoPlayer.seekToDefaultPosition(randomIndex)
-            _audioState.value = AudioState.CurrentPlaying(randomIndex)
+            _musicState.value = MusicState.CurrentPlaying(randomIndex)
             exoPlayer.playWhenReady = true
             startProgressUpdate()
         }
@@ -178,21 +186,21 @@ class MusicServiceHandler @Inject constructor(
         job = scope.launch {
             while (isActive) {
                 delay(500)
-                _audioState.value = AudioState.Progress(exoPlayer.currentPosition)
+                _musicState.value = MusicState.Progress(exoPlayer.currentPosition)
             }
         }
     }
 
     private fun stopProgressUpdate() {
         job?.cancel()
-        _audioState.value = AudioState.Playing(isPlaying = false)
+        _musicState.value = MusicState.Playing(isPlaying = false)
     }
 
     private fun handleEndOfPlayback() {
         when (repeatMode) {
             RepeatMode.OFF -> {
                 exoPlayer.seekToDefaultPosition()
-                _audioState.value = AudioState.Playing(isPlaying = false)
+                _musicState.value = MusicState.Playing(isPlaying = false)
                 exoPlayer.pause()
             }
             RepeatMode.ALL -> {

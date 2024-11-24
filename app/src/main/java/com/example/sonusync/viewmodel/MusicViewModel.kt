@@ -1,55 +1,93 @@
 package com.example.sonusync.viewmodel
 
-import android.content.SharedPreferences
+import android.annotation.SuppressLint
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sonusync.data.enums.RepeatMode
+import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
+import androidx.lifecycle.viewmodel.compose.saveable
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import com.example.sonusync.data.model.Music
 import com.example.sonusync.data.repository.MusicRepository
+import com.example.sonusync.service.MusicServiceHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
+@OptIn(SavedStateHandleSaveableApi::class)
 class MusicViewModel  @Inject constructor(
     private val musicRepository: MusicRepository,
-    private val sharedPreferences: SharedPreferences
+    private val musicServiceHandler: MusicServiceHandler,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    var duration by savedStateHandle.saveable { mutableLongStateOf(0L) }
+    var progress by savedStateHandle.saveable { mutableFloatStateOf(0f) }
+    var progressString by savedStateHandle.saveable { mutableStateOf("00:00") }
+    var isPlaying by savedStateHandle.saveable { mutableStateOf(false) }
+    var selectedMusic by savedStateHandle.saveable { mutableStateOf<Music?>(null) }
+    var musicList by savedStateHandle.saveable { mutableStateOf(listOf<Music>()) }
+    var filteredmusicList by savedStateHandle.saveable { mutableStateOf(listOf<Music>()) }
+    var isShuffleEnabled by savedStateHandle.saveable { mutableStateOf(musicServiceHandler.getShuffleMode()) }
+    var repeatMode by savedStateHandle.saveable { mutableStateOf(musicServiceHandler.getRepeatMode()) }
 
-    companion object {
-        private const val PREF_CURRENT_MUSIC_INDEX = "pref_current_music_index"
-        private const val PREF_SHUFFLE_STATE = "pref_shuffle_state"
-        private const val PREF_REPEAT_STATE = "pref_repeat_state"
+    private val _uiState: MutableStateFlow<UIState> = MutableStateFlow(UIState.Initial)
+    val uiState: StateFlow<UIState> = _uiState.asStateFlow()
+
+    sealed class UIEvents {
+        object PlayPause : UIEvents()
+        data class SelectedAudioChange(val index: Int) : UIEvents()
+        data class SeekTo(val position: Float) : UIEvents()
+        object SeekToNext : UIEvents()
+        object Backward : UIEvents()
+        object Forward : UIEvents()
+        object Shuffle : UIEvents()
+        object Repeat : UIEvents()
+        data class UpdateProgress(val newProgress: Float) : UIEvents()
     }
 
-    private val _musicList = MutableLiveData<List<Music>>(emptyList())
-    val musicList: LiveData<List<Music>> get() = _musicList
-
-    private val _currentMusicIndex = MutableLiveData<Int>().apply { value = sharedPreferences.getInt(PREF_CURRENT_MUSIC_INDEX, 0) }
-    val currentMusicIndex: LiveData<Int> get() = _currentMusicIndex
-
-    private val _isShuffled = MutableLiveData<Boolean>().apply { value = sharedPreferences.getBoolean(PREF_SHUFFLE_STATE, false) }
-    val isShuffleEnabled: LiveData<Boolean> get() = _isShuffled
-
-    private val _repeatMode = MutableLiveData<RepeatMode>().apply { value = RepeatMode.OFF }
-    val repeatMode: LiveData<RepeatMode> get() = _repeatMode
-
-    private val _filteredMusicList = MutableLiveData<List<Music>>()
-    val filteredMusicList: LiveData<List<Music>> get() = _filteredMusicList
+    sealed class UIState {
+        object Initial : UIState()
+        object Ready : UIState()
+    }
 
     init {
-        _repeatMode.value = RepeatMode.entries.toTypedArray()[sharedPreferences.getInt(PREF_REPEAT_STATE, 1)]
+        insertMusic()
+
+        viewModelScope.launch {
+            musicServiceHandler.musicState.collectLatest { mediaState ->
+                when (mediaState) {
+                    MusicServiceHandler.MusicState.Initial -> _uiState.value = UIState.Initial
+                    is MusicServiceHandler.MusicState.Buffering -> calculateProgressValue(mediaState.progress)
+                    is MusicServiceHandler.MusicState.Playing -> isPlaying = mediaState.isPlaying
+                    is MusicServiceHandler.MusicState.Progress -> calculateProgressValue(mediaState.progress)
+                    is MusicServiceHandler.MusicState.CurrentPlaying -> selectedMusic = musicList[mediaState.mediaItemIndex]
+                    is MusicServiceHandler.MusicState.Ready -> {
+                        duration = mediaState.duration
+                        _uiState.value = UIState.Ready
+                    }
+                }
+            }
+
+
+        }
     }
 
     fun insertMusic() {
         viewModelScope.launch {
             try {
                 val musicData = musicRepository.getMusicFromStorage()
-                val musicList = musicData.musicList
-                musicRepository.saveMusicListToLocal(musicList)
+                musicList = musicData.musicList
                 loadMusic()
             } catch (e: Exception) {
                 Log.e("MusicViewModel", "Error inserting music", e)
@@ -58,135 +96,88 @@ class MusicViewModel  @Inject constructor(
     }
 
     fun loadMusic(){
+        musicList.map { music ->
+            MediaItem.Builder()
+                .setUri(music.uri)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setAlbumArtist(music.artist)
+                        .setDisplayTitle(music.title)
+                        .build()
+                )
+                .build()
+        }.also {
+            musicServiceHandler.setMediaItemList(it)
+        }
+    }
+
+    fun onUiEvents(uiEvents: UIEvents) = viewModelScope.launch {
+        when (uiEvents) {
+            UIEvents.Backward -> musicServiceHandler.onPlayerEvents(MusicServiceHandler.PlayerEvent.Backward)
+            UIEvents.Forward -> musicServiceHandler.onPlayerEvents(MusicServiceHandler.PlayerEvent.Forward)
+            UIEvents.SeekToNext -> musicServiceHandler.onPlayerEvents(MusicServiceHandler.PlayerEvent.SeekToNext)
+            UIEvents.Shuffle -> toggleShuffle()
+            UIEvents.Repeat -> toggleRepeatMode()
+            is UIEvents.PlayPause -> {
+                musicServiceHandler.onPlayerEvents(
+                    MusicServiceHandler.PlayerEvent.PlayPause
+                )
+            }
+
+            is UIEvents.SeekTo -> {
+                musicServiceHandler.onPlayerEvents(
+                    MusicServiceHandler.PlayerEvent.SeekTo,
+                    seekPosition = ((duration * uiEvents.position) / 100f).toLong()
+                )
+            }
+
+            is UIEvents.SelectedAudioChange -> {
+                musicServiceHandler.onPlayerEvents(
+                    MusicServiceHandler.PlayerEvent.SelectedAudioChange,
+                    selectedAudioIndex = uiEvents.index
+                )
+            }
+
+            is UIEvents.UpdateProgress -> {
+                musicServiceHandler.onPlayerEvents(
+                    MusicServiceHandler.PlayerEvent.UpdateProgress(
+                        uiEvents.newProgress
+                    )
+                )
+                progress = uiEvents.newProgress
+            }
+        }
+    }
+
+    private fun toggleShuffle() {
+        musicServiceHandler.toggleShuffle()
+        isShuffleEnabled = musicServiceHandler.getShuffleMode()
+    }
+
+    private fun toggleRepeatMode() {
+        musicServiceHandler.toggleRepeatMode()
+        repeatMode = musicServiceHandler.getRepeatMode()
+    }
+
+    private fun calculateProgressValue(currentProgress: Long) {
+        progress =
+            if (currentProgress > 0) ((currentProgress.toFloat() / duration.toFloat()) * 100f)
+            else 0f
+        progressString = formatDuration(currentProgress)
+    }
+
+    @SuppressLint("DefaultLocale")
+    fun formatDuration(duration: Long): String {
+        val minute = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
+        val seconds = (duration / 1000) % 60
+
+        return String.format("%02d:%02d", minute, seconds)
+    }
+
+    override fun onCleared() {
         viewModelScope.launch {
-            try {
-                val music = musicRepository.getMusicListFromLocal()
-                _musicList.postValue(music)
-            } catch (e: Exception) {
-                Log.e("MusicViewModel", "Error loading music from database", e)
-            }
+            musicServiceHandler.onPlayerEvents(MusicServiceHandler.PlayerEvent.Stop)
         }
-    }
-
-    fun selectMusicAtIndex(index: Int) {
-        if (index in 0 until (_musicList.value?.size ?: 0)) {
-            _currentMusicIndex.value = index
-
-            sharedPreferences.edit()
-                .putInt(PREF_CURRENT_MUSIC_INDEX, index)
-                .apply()
-        }
-    }
-
-    fun playNext() {
-        val currentIndex = _currentMusicIndex.value ?: return
-        val musicListSize = _musicList.value?.size ?: 1
-
-        val newIndex = if (_isShuffled.value == true) {
-            var randomIndex = (0 until musicListSize).random()
-            while (randomIndex == currentIndex) {
-                randomIndex = (0 until musicListSize).random()
-            }
-            randomIndex
-        } else {
-            when (_repeatMode.value) {
-                RepeatMode.ALL -> (currentIndex + 1) % musicListSize
-                RepeatMode.ONE -> currentIndex
-                else -> (currentIndex + 1) % musicListSize
-            }
-        }
-        _currentMusicIndex.postValue(newIndex)
-
-        sharedPreferences.edit()
-            .putInt(PREF_CURRENT_MUSIC_INDEX, newIndex)
-            .apply()
-    }
-
-    fun playPrevious() {
-        val currentIndex = _currentMusicIndex.value ?: return
-        val musicListSize = _musicList.value?.size ?: 1
-
-        val newIndex = if (_isShuffled.value == true) {
-            var randomIndex = (0 until musicListSize).random()
-            while (randomIndex == currentIndex) {
-                randomIndex = (0 until musicListSize).random()
-            }
-            randomIndex
-        } else {
-            when (_repeatMode.value) {
-                RepeatMode.ALL -> if (currentIndex > 0) currentIndex - 1 else musicListSize - 1
-                RepeatMode.ONE -> currentIndex
-                else -> if (currentIndex > 0) currentIndex - 1 else musicListSize - 1
-            }
-        }
-        _currentMusicIndex.postValue(newIndex)
-
-        sharedPreferences.edit()
-            .putInt(PREF_CURRENT_MUSIC_INDEX, newIndex)
-            .apply()
-    }
-
-    fun toggleShuffle() {
-        _isShuffled.value = _isShuffled.value?.not()
-        sharedPreferences.edit()
-            .putBoolean(PREF_SHUFFLE_STATE, _isShuffled.value ?: false)
-            .apply()
-    }
-
-    fun toggleRepeat() {
-        val nextMode = when (_repeatMode.value) {
-            RepeatMode.OFF -> RepeatMode.ALL
-            RepeatMode.ALL -> RepeatMode.ONE
-            RepeatMode.ONE -> RepeatMode.OFF
-            null -> TODO()
-        }
-        _repeatMode.value = nextMode
-
-        sharedPreferences.edit()
-            .putInt(PREF_REPEAT_STATE, nextMode.ordinal)
-            .apply()
-    }
-
-    fun filterMusicByAlbum(albumName: String) {
-        val fullList = _musicList.value ?: emptyList()
-        val filteredList = fullList.filter {
-            it.album == albumName
-        }
-
-        _filteredMusicList.postValue(filteredList)
-    }
-
-    fun filterMusicByArtist(artistName: String) {
-        val fullList = _musicList.value ?: emptyList()
-        val filteredList = fullList.filter {
-            it.artist == artistName
-        }
-
-        _filteredMusicList.postValue(filteredList)
-    }
-
-    fun clearFilteredMusicList() {
-        _filteredMusicList.postValue(emptyList())
-    }
-
-    fun findMusic(title: String) {
-        viewModelScope.launch {
-            try {
-                val music = musicRepository.findMusicByTitle(title)
-            } catch (e: Exception) {
-                Log.e("MusicViewModel", "Error finding music by title: $title", e)
-            }
-        }
-    }
-
-    fun deleteMusic(musicId: Long) {
-        viewModelScope.launch {
-            try {
-                musicRepository.deleteMusic(musicId)
-                loadMusic()
-            } catch (e: Exception) {
-                Log.e("MusicViewModel", "Error deleting music with ID: $musicId", e)
-            }
-        }
+        super.onCleared()
     }
 }

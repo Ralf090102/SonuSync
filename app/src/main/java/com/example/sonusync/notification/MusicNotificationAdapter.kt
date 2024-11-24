@@ -21,8 +21,11 @@ class MusicNotificationAdapter(
 
     override fun createCurrentContentIntent(player: Player): PendingIntent? = pendingIntent
 
-    override fun getCurrentContentText(player: Player): CharSequence =
-        player.mediaMetadata.displayTitle ?: "Unknown"
+    override fun getCurrentContentText(player: Player): CharSequence {
+        val title = player.mediaMetadata.displayTitle ?: "Unknown"
+        val artist = player.mediaMetadata.artist ?: "Unknown Artist"
+        return "$title - $artist"
+    }
 
     override fun getCurrentLargeIcon(
         player: Player,
