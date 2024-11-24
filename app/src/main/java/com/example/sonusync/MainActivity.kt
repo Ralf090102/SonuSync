@@ -15,6 +15,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.example.sonusync.service.MusicService
+import com.example.sonusync.service.ServiceStarter
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.ui.settings.SettingsActivity
 import com.example.sonusync.viewmodel.EnsembleViewModel
@@ -23,11 +25,13 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ServiceStarter {
 
     private val musicViewModel: MusicViewModel by viewModels()
     private val searchViewModel: SearchViewModel by viewModels()
     private val ensembleViewModel: EnsembleViewModel by viewModels()
+
+    private var isServiceRunning = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,12 +74,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun startMusicService() {
+        startService()
+    }
 
     private fun hideStatusBar() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
         } else {
             window.insetsController?.hide(WindowInsetsCompat.Type.statusBars())
+        }
+    }
+
+    private fun startService() {
+        if (!isServiceRunning) {
+            val intent = Intent(this, MusicService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            isServiceRunning = true
         }
     }
 

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
 import com.example.sonusync.data.model.Music
+import com.example.sonusync.service.ServiceStarter
 import com.example.sonusync.ui.music.MusicFragment
 import com.example.sonusync.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,6 +50,7 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
     }
 
     override fun onMusicClick(music: Music) {
+        (activity as? ServiceStarter)?.startMusicService()
         val fragmentTransaction = requireActivity().supportFragmentManager.beginTransaction()
 
         fragmentTransaction.setCustomAnimations(
