@@ -14,21 +14,15 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
-import android.widget.Toast
-import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import coil.load
 import com.example.sonusync.R
 import com.example.sonusync.viewmodel.MusicViewModel
-import com.example.sonusync.data.enums.RepeatMode
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.imageview.ShapeableImageView
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class MusicFragment : Fragment(R.layout.fragment_music_player){
@@ -37,7 +31,6 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
 
     private val musicViewModel: MusicViewModel by activityViewModels()
 
-    private var currentToast: Toast? = null
     private lateinit var tvMusicTitle: TextView
     private lateinit var tvMusicArtist: TextView
     private lateinit var tvTotalTime: TextView
@@ -57,7 +50,8 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     private val handler = Handler(Looper.getMainLooper())
     private val updateRunnable = object : Runnable {
         override fun run() {
-            TODO()
+            musicViewModel.updatePlaybackPosition()
+            handler.postDelayed(this, 1000)
         }
     }
 
@@ -82,6 +76,41 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
 
         initializeViews(view)
 
+        musicViewModel.currentMusic.observe(viewLifecycleOwner) { music ->
+            setMusicFragmentUI(music.title, music.artist, music.duration.toString(), music.albumArtUri)
+        }
+
+        sbPlayback.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    musicViewModel.onSeekBarChanged(progress)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        fabMusic.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.PlayPause)
+        }
+
+        ibPrev.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.Backward)
+        }
+
+        ibNext.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.Forward)
+        }
+
+        ibShuffle.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.Shuffle)
+        }
+
+        ibRepeat.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.Repeat)
+        }
+
         view.setOnTouchListener { _, event ->
             gestureDetector.onTouchEvent(event)
         }
@@ -90,14 +119,11 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     override fun onStop() {
         super.onStop()
         handler.removeCallbacks(updateRunnable)
-
-        TODO()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-
-        TODO()
+        musicViewModel.releasePlayer()
     }
 
     private fun initializeViews(view: View){
@@ -127,13 +153,6 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
         }
 
         showMiniMusicFragment()
-    }
-
-    @SuppressLint("DefaultLocale")
-    private fun formatDuration(duration: Long): String {
-        val minutes = (duration / 1000) / 60
-        val seconds = (duration / 1000) % 60
-        return String.format("%d:%02d", minutes, seconds)
     }
 
     private fun hideMusicFragment() {

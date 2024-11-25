@@ -52,6 +52,9 @@ class MusicViewModel  @Inject constructor(
     private val _musicFlow = MutableStateFlow(musicList)
     val musicFlow: StateFlow<List<Music>> get() = _musicFlow
 
+    private val _currentMusic = MutableLiveData<Music>()
+    val currentMusic: LiveData<Music> get() = _currentMusic
+
     private val _filteredMusicFlow = MutableStateFlow<List<Music>>(emptyList())
     val filteredMusicFlow: StateFlow<List<Music>> get() = _filteredMusicFlow
 
@@ -161,6 +164,20 @@ class MusicViewModel  @Inject constructor(
         }
     }
 
+    fun selectAndPlayMusic(music: Music) {
+        selectedMusic = music
+        _currentMusic.value = music
+
+        val index = musicList.indexOfFirst { it.id == music.id }
+        if (index != -1) {
+            onUiEvents(UIEvents.SelectedAudioChange(index))
+        }
+    }
+
+    fun updateCurrentMusic(music: Music) {
+        _currentMusic.value = music
+    }
+
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
     }
@@ -175,6 +192,20 @@ class MusicViewModel  @Inject constructor(
 
     fun clearFilteredMusicList() {
         _filteredMusicFlow.value = emptyList()
+    }
+
+    fun updatePlaybackPosition() {
+        val currentProgress = musicServiceHandler.getCurrentPlaybackPosition()
+        updateProgressState(currentProgress)
+    }
+
+    fun onSeekBarChanged(progressPercentage: Int) {
+        val positionMs = (progressPercentage / 100f) * duration
+        onUiEvents(UIEvents.SeekTo(positionMs))
+    }
+
+    fun releasePlayer() {
+        musicServiceHandler.releasePlayer()
     }
 
     @SuppressLint("DefaultLocale")

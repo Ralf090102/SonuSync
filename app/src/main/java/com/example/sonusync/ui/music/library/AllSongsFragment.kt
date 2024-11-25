@@ -51,6 +51,7 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
 
     override fun onMusicClick(music: Music) {
         (activity as? ServiceStarter)?.startMusicService()
+        musicViewModel.selectAndPlayMusic(music)
         val fragmentTransaction = requireActivity().supportFragmentManager.beginTransaction()
 
         fragmentTransaction.setCustomAnimations(

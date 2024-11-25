@@ -65,6 +65,14 @@ class MusicServiceHandler @Inject constructor(
         exoPlayer.prepare()
     }
 
+    fun getCurrentMediaDuration(): Long {
+        return exoPlayer.duration
+    }
+
+    fun getCurrentPlaybackPosition(): Long {
+        return exoPlayer.currentPosition
+    }
+
     fun getShuffleMode() : Boolean {
         return isShuffleEnabled
     }
@@ -83,6 +91,10 @@ class MusicServiceHandler @Inject constructor(
             RepeatMode.ONE -> RepeatMode.ALL
             RepeatMode.ALL -> RepeatMode.OFF
         }
+    }
+
+    fun releasePlayer() {
+        exoPlayer.release()
     }
 
     fun onPlayerEvents(
