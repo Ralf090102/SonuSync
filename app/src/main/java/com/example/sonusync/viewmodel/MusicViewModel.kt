@@ -1,6 +1,7 @@
 package com.example.sonusync.viewmodel
 
 import android.annotation.SuppressLint
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -15,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import com.example.sonusync.data.enums.RepeatMode
 import com.example.sonusync.data.model.Music
 import com.example.sonusync.data.repository.MusicRepository
 import com.example.sonusync.service.MusicServiceHandler
@@ -32,28 +34,43 @@ import javax.inject.Inject
 class MusicViewModel  @Inject constructor(
     private val musicRepository: MusicRepository,
     private val musicServiceHandler: MusicServiceHandler,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val preferences: SharedPreferences
 ) : ViewModel() {
+
+    private companion object {
+        private const val KEY_REPEAT_MODE = "repeatMode"
+        private const val KEY_SHUFFLE = "isShuffleEnabled"
+        private const val KEY_SELECTED_INDEX = "selectedIndex"
+    }
+
     var duration by savedStateHandle.saveable { mutableLongStateOf(0L) }
     var progress by savedStateHandle.saveable { mutableFloatStateOf(0f) }
     var progressString by savedStateHandle.saveable { mutableStateOf("00:00") }
     var isPlaying by savedStateHandle.saveable { mutableStateOf(false) }
-    var selectedMusic by savedStateHandle.saveable { mutableStateOf<Music?>(null) }
+    var selectedMusic by savedStateHandle.saveable { mutableStateOf(savedStateHandle.get<Music?>("selectedMusic")) }
     var musicList by savedStateHandle.saveable { mutableStateOf(listOf<Music>()) }
-    var isShuffleEnabled by savedStateHandle.saveable { mutableStateOf(musicServiceHandler.getShuffleMode()) }
-    var repeatMode by savedStateHandle.saveable { mutableStateOf(musicServiceHandler.getRepeatMode()) }
+
+    var repeatMode: RepeatMode = RepeatMode.valueOf(preferences.getString(KEY_REPEAT_MODE, musicServiceHandler.getRepeatMode().name) ?: RepeatMode.OFF.name)
+        set(value) {
+            field = value
+            preferences.edit().putString(KEY_REPEAT_MODE, value.name).apply()
+        }
+
+    var isShuffleEnabled: Boolean = preferences.getBoolean(KEY_SHUFFLE, false)
+        set(value) {
+            field = value
+            preferences.edit().putBoolean(KEY_SHUFFLE, value).apply()
+        }
+
+    private val _selectedIndex = MutableLiveData<Int>().apply { value = preferences.getInt(KEY_SELECTED_INDEX, -1) }
+    val selectedIndex: LiveData<Int> get() = _selectedIndex
 
     private val _uiState: MutableStateFlow<UIState> = MutableStateFlow(UIState.Initial)
     val uiState: StateFlow<UIState> = _uiState.asStateFlow()
 
-    private val _searchQuery = MutableLiveData("")
-    val searchQuery: LiveData<String> = _searchQuery
-
     private val _musicFlow = MutableStateFlow(musicList)
     val musicFlow: StateFlow<List<Music>> get() = _musicFlow
-
-    private val _currentMusic = MutableLiveData<Music>()
-    val currentMusic: LiveData<Music> get() = _currentMusic
 
     private val _filteredMusicFlow = MutableStateFlow<List<Music>>(emptyList())
     val filteredMusicFlow: StateFlow<List<Music>> get() = _filteredMusicFlow
@@ -64,15 +81,18 @@ class MusicViewModel  @Inject constructor(
     private val _ldIsPlaying = MutableLiveData<Boolean>()
     val ldIsPlaying: LiveData<Boolean> = _ldIsPlaying
 
+    private val _searchQuery = MutableLiveData("")
+
     sealed class UIEvents {
         object PlayPause : UIEvents()
-        data class SelectedAudioChange(val index: Int) : UIEvents()
-        data class SeekTo(val position: Float) : UIEvents()
+        object SeekToPrevious : UIEvents()
         object SeekToNext : UIEvents()
         object Backward : UIEvents()
         object Forward : UIEvents()
         object Shuffle : UIEvents()
         object Repeat : UIEvents()
+        data class SelectedAudioChange(val index: Int) : UIEvents()
+        data class SeekTo(val position: Float) : UIEvents()
         data class UpdateProgress(val newProgress: Float) : UIEvents()
     }
 
@@ -83,11 +103,11 @@ class MusicViewModel  @Inject constructor(
     }
 
     init {
-        _queryMusicList.addSource(_searchQuery) { filterMusicByQuery() }
-        _ldIsPlaying.value = musicServiceHandler.getShuffleMode()
-
+        _selectedIndex.value?.let { index -> selectedMusic = musicList.getOrNull(index) }
         insertMusic()
         observeMusicServiceState()
+
+        _queryMusicList.addSource(_searchQuery) { filterMusicByQuery() }
     }
 
     override fun onCleared() {
@@ -130,13 +150,17 @@ class MusicViewModel  @Inject constructor(
         when (uiEvents) {
             UIEvents.Backward -> musicServiceHandler.onPlayerEvents(MusicServiceHandler.PlayerEvent.Backward)
             UIEvents.Forward -> musicServiceHandler.onPlayerEvents(MusicServiceHandler.PlayerEvent.Forward)
+            UIEvents.SeekToPrevious -> musicServiceHandler.onPlayerEvents(MusicServiceHandler.PlayerEvent.SeekToPrevious)
             UIEvents.SeekToNext -> musicServiceHandler.onPlayerEvents(MusicServiceHandler.PlayerEvent.SeekToNext)
             UIEvents.Shuffle -> toggleShuffle()
             UIEvents.Repeat -> toggleRepeatMode()
+
             is UIEvents.PlayPause -> {
                 musicServiceHandler.onPlayerEvents(
                     MusicServiceHandler.PlayerEvent.PlayPause
                 )
+
+                _ldIsPlaying.value = musicServiceHandler.getPlayback()
             }
 
             is UIEvents.SeekTo -> {
@@ -164,18 +188,21 @@ class MusicViewModel  @Inject constructor(
         }
     }
 
-    fun selectAndPlayMusic(music: Music) {
-        selectedMusic = music
-        _currentMusic.value = music
-
-        val index = musicList.indexOfFirst { it.id == music.id }
-        if (index != -1) {
-            onUiEvents(UIEvents.SelectedAudioChange(index))
-        }
+    fun getIsShuffled(): Boolean {
+        return isShuffleEnabled
     }
 
-    fun updateCurrentMusic(music: Music) {
-        _currentMusic.value = music
+    fun fetchRepeatMode(): RepeatMode {
+        return repeatMode
+    }
+
+    fun selectAndPlayMusic(music: Music) {
+        val index = musicList.indexOfFirst { it.id == music.id }
+        if (index != -1) {
+            _selectedIndex.value = index
+            preferences.edit().putInt(KEY_SELECTED_INDEX, index).apply()
+            onUiEvents(UIEvents.SelectedAudioChange(index))
+        }
     }
 
     fun setSearchQuery(query: String) {
@@ -210,23 +237,9 @@ class MusicViewModel  @Inject constructor(
 
     @SuppressLint("DefaultLocale")
     fun formatDuration(duration: Long): String {
-        val minute = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
+        val minutes = (duration / 1000) / 60
         val seconds = (duration / 1000) % 60
-
-        return String.format("%02d:%02d", minute, seconds)
-    }
-
-    private fun filterMusicByQuery() {
-        val query = _searchQuery.value ?: ""
-        _queryMusicList.value = if (query.isBlank()) {
-            musicList
-        } else {
-            musicList.filter {
-                it.title.contains(query, ignoreCase = true) ||
-                        it.album.contains(query, ignoreCase = true) ||
-                        it.artist.contains(query, ignoreCase = true)
-            }
-        }
+        return String.format("%d:%02d", minutes, seconds)
     }
 
     private fun observeMusicServiceState() {
@@ -238,7 +251,7 @@ class MusicViewModel  @Inject constructor(
                     is MusicServiceHandler.MusicState.Progress -> updateProgressState(mediaState.progress)
                     is MusicServiceHandler.MusicState.Playing -> {
                         isPlaying = mediaState.isPlaying
-                        _ldIsPlaying.value = mediaState.isPlaying
+                        _ldIsPlaying.value = musicServiceHandler.getPlayback()
                     }
                     is MusicServiceHandler.MusicState.CurrentPlaying -> {
                         if (mediaState.mediaItemIndex in musicList.indices) {
@@ -269,5 +282,18 @@ class MusicViewModel  @Inject constructor(
     private fun updateProgressState(currentProgress: Long) {
         progress = if (currentProgress > 0) ((currentProgress.toFloat() / duration.toFloat()) * 100f) else 0f
         progressString = formatDuration(currentProgress)
+    }
+
+    private fun filterMusicByQuery() {
+        val query = _searchQuery.value ?: ""
+        _queryMusicList.value = if (query.isBlank()) {
+            musicList
+        } else {
+            musicList.filter {
+                it.title.contains(query, ignoreCase = true) ||
+                        it.album.contains(query, ignoreCase = true) ||
+                        it.artist.contains(query, ignoreCase = true)
+            }
+        }
     }
 }

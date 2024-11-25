@@ -65,6 +65,10 @@ class MusicServiceHandler @Inject constructor(
         exoPlayer.prepare()
     }
 
+    fun getPlayback(): Boolean {
+        return exoPlayer.isPlaying
+    }
+
     fun getCurrentMediaDuration(): Long {
         return exoPlayer.duration
     }
@@ -73,11 +77,11 @@ class MusicServiceHandler @Inject constructor(
         return exoPlayer.currentPosition
     }
 
-    fun getShuffleMode() : Boolean {
+    fun getShuffleMode(): Boolean {
         return isShuffleEnabled
     }
 
-    fun getRepeatMode() : RepeatMode {
+    fun getRepeatMode(): RepeatMode {
         return repeatMode
     }
 
@@ -107,7 +111,16 @@ class MusicServiceHandler @Inject constructor(
                 if (isShuffleEnabled) {
                     seekToRandom()
                 } else {
-                    exoPlayer.seekToNext()
+                    val nextIndex = if (exoPlayer.hasNextMediaItem()) {
+                        exoPlayer.nextMediaItemIndex
+                    } else {
+                        0
+                    }
+                    exoPlayer.seekToDefaultPosition(nextIndex)
+                    exoPlayer.playWhenReady = true
+                    if (!exoPlayer.isPlaying) {
+                        exoPlayer.play()
+                    }
                 }
             }
 
@@ -115,7 +128,16 @@ class MusicServiceHandler @Inject constructor(
                 if (isShuffleEnabled) {
                     seekToRandom()
                 } else {
-                    exoPlayer.seekToPrevious()
+                    val previousIndex = if (exoPlayer.previousMediaItemIndex >= 0) {
+                        exoPlayer.previousMediaItemIndex
+                    } else {
+                        exoPlayer.mediaItemCount - 1
+                    }
+                    exoPlayer.seekToDefaultPosition(previousIndex)
+                    exoPlayer.playWhenReady = true
+                    if (!exoPlayer.isPlaying) {
+                        exoPlayer.play()
+                    }
                 }
             }
 
@@ -127,10 +149,13 @@ class MusicServiceHandler @Inject constructor(
 
                     else -> {
                         exoPlayer.seekToDefaultPosition(selectedAudioIndex)
-                        _musicState.value = MusicState.Playing(
-                            isPlaying = true
-                        )
                         exoPlayer.playWhenReady = true
+
+                        if (!exoPlayer.isPlaying){
+                            exoPlayer.play()
+                        }
+
+                        _musicState.value = MusicState.Playing(isPlaying = true)
                         startProgressUpdate()
                     }
                 }
@@ -156,8 +181,8 @@ class MusicServiceHandler @Inject constructor(
         when (playbackState) {
             ExoPlayer.STATE_BUFFERING -> _musicState.value = MusicState.Buffering(exoPlayer.currentPosition)
             ExoPlayer.STATE_READY -> _musicState.value = MusicState.Ready(exoPlayer.duration)
-            Player.STATE_ENDED -> handleEndOfPlayback()
-            Player.STATE_IDLE -> return
+            ExoPlayer.STATE_ENDED -> handleEndOfPlayback()
+            ExoPlayer.STATE_IDLE -> return
         }
     }
 
@@ -212,9 +237,10 @@ class MusicServiceHandler @Inject constructor(
         when (repeatMode) {
             RepeatMode.OFF -> {
                 exoPlayer.seekToDefaultPosition()
-                _musicState.value = MusicState.Playing(isPlaying = false)
                 exoPlayer.pause()
+                _musicState.value = MusicState.Playing(isPlaying = false)
             }
+
             RepeatMode.ALL -> {
                 if (isShuffleEnabled) {
                     seekToRandom()
@@ -222,9 +248,17 @@ class MusicServiceHandler @Inject constructor(
                     exoPlayer.seekToNext()
                 }
             }
+
             RepeatMode.ONE -> {
                 exoPlayer.seekTo(0)
                 exoPlayer.playWhenReady = true
+
+                if (!exoPlayer.isPlaying){
+                    exoPlayer.play()
+                }
+
+                _musicState.value = MusicState.Playing(isPlaying = true)
+                startProgressUpdate()
             }
         }
     }

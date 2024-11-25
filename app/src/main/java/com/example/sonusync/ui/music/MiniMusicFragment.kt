@@ -65,13 +65,9 @@ class MiniMusicFragment : Fragment(R.layout.fragment_mini_music_player) {
 
     private fun observeMusicState() {
         musicViewModel.ldIsPlaying.observe(viewLifecycleOwner) { isPlaying ->
-            updatePlayPauseIcon(isPlaying)
+            ibMiniPlayPause.setImageResource(
+                if (isPlaying) R.drawable.ic_music_pause_mini else R.drawable.ic_music_play_mini
+            )
         }
-    }
-
-    private fun updatePlayPauseIcon(isPlaying: Boolean) {
-        ibMiniPlayPause.setImageResource(
-            if (isPlaying) R.drawable.ic_music_pause_mini else R.drawable.ic_music_play_mini
-        )
     }
 }

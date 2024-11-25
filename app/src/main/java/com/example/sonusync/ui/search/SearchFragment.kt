@@ -66,6 +66,7 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
     @SuppressLint("ServiceCast")
     override fun onMusicClick(music: Music) {
         (activity as? ServiceStarter)?.startMusicService()
+        musicViewModel.selectAndPlayMusic(music)
 
         val inputMethodManager = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         val currentFocusView = requireActivity().currentFocus

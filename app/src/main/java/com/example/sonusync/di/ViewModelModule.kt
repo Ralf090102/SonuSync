@@ -1,5 +1,6 @@
 package com.example.sonusync.di
 
+import android.content.SharedPreferences
 import androidx.lifecycle.SavedStateHandle
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.data.repository.MusicRepository
@@ -20,9 +21,10 @@ object ViewModelModule {
     fun provideMusicViewModel(
         musicRepository: MusicRepository,
         musicServiceHandler: MusicServiceHandler,
-        savedStateHandle: SavedStateHandle
+        savedStateHandle: SavedStateHandle,
+        sharedPreferences: SharedPreferences
     ): MusicViewModel {
-        return MusicViewModel(musicRepository, musicServiceHandler, savedStateHandle)
+        return MusicViewModel(musicRepository, musicServiceHandler, savedStateHandle, sharedPreferences)
     }
 
     @Provides

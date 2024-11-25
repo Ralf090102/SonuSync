@@ -8,16 +8,19 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import coil.load
 import com.example.sonusync.R
+import com.example.sonusync.data.enums.RepeatMode
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.imageview.ShapeableImageView
@@ -31,6 +34,7 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
 
     private val musicViewModel: MusicViewModel by activityViewModels()
 
+    private var currentToast: Toast? = null
     private lateinit var tvMusicTitle: TextView
     private lateinit var tvMusicArtist: TextView
     private lateinit var tvTotalTime: TextView
@@ -50,7 +54,7 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     private val handler = Handler(Looper.getMainLooper())
     private val updateRunnable = object : Runnable {
         override fun run() {
-            musicViewModel.updatePlaybackPosition()
+            //TODO()
             handler.postDelayed(this, 1000)
         }
     }
@@ -76,8 +80,11 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
 
         initializeViews(view)
 
-        musicViewModel.currentMusic.observe(viewLifecycleOwner) { music ->
-            setMusicFragmentUI(music.title, music.artist, music.duration.toString(), music.albumArtUri)
+        musicViewModel.selectedIndex.observe(viewLifecycleOwner) { index ->
+            val music = musicViewModel.musicList.getOrNull(index)
+            if (music != null) {
+                setMusicFragmentUI(music.title, music.artist, musicViewModel.formatDuration(music.duration), music.albumArtUri)
+            }
         }
 
         sbPlayback.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -91,24 +98,58 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
+        musicViewModel.ldIsPlaying.observe(viewLifecycleOwner) { isPlaying ->
+            Log.d("DebugLogs", "isPlaying: ${isPlaying}")
+            fabMusic.setImageResource(
+                if (isPlaying) R.drawable.ic_music_pause_mini else R.drawable.ic_music_play_mini
+            )
+        }
+
         fabMusic.setOnClickListener {
             musicViewModel.onUiEvents(MusicViewModel.UIEvents.PlayPause)
         }
 
         ibPrev.setOnClickListener {
-            musicViewModel.onUiEvents(MusicViewModel.UIEvents.Backward)
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.SeekToPrevious)
         }
 
         ibNext.setOnClickListener {
-            musicViewModel.onUiEvents(MusicViewModel.UIEvents.Forward)
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.SeekToNext)
         }
 
         ibShuffle.setOnClickListener {
             musicViewModel.onUiEvents(MusicViewModel.UIEvents.Shuffle)
+            val isShuffled = musicViewModel.getIsShuffled()
+
+            ibShuffle.setImageResource(
+                if (isShuffled) R.drawable.ic_music_shuffle_on else R.drawable.ic_music_shuffle_off
+            )
+
+            currentToast?.cancel()
+            currentToast = Toast.makeText(context,
+                if (isShuffled) "Shuffle On"
+                else "Shuffle Off",
+                Toast.LENGTH_SHORT).apply { show() }
         }
 
         ibRepeat.setOnClickListener {
             musicViewModel.onUiEvents(MusicViewModel.UIEvents.Repeat)
+            val repeatMode = musicViewModel.fetchRepeatMode()
+
+            val repeatDrawable = when (repeatMode) {
+                RepeatMode.OFF -> R.drawable.ic_music_repeat_disabled
+                RepeatMode.ONE -> R.drawable.ic_music_repeat_one
+                RepeatMode.ALL -> R.drawable.ic_music_repeat_enabled
+            }
+
+            ibRepeat.setImageResource(repeatDrawable)
+
+            currentToast?.cancel()
+            currentToast = Toast.makeText(
+                context,
+                "Repeat Mode: $repeatMode",
+                Toast.LENGTH_SHORT
+            ).apply { show() }
         }
 
         view.setOnTouchListener { _, event ->
@@ -140,7 +181,7 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
         ibRepeat = view.findViewById(R.id.ibRepeat)
     }
 
-    private fun setMusicFragmentUI(title: String?, artist: String?, duration: String?, albumArtUri: String?){
+    private fun setMusicFragmentUI(title: String?, artist: String?, duration: String?, albumArtUri: String?) {
         tvMusicTitle.text = title
         tvMusicArtist.text = artist
         tvTotalTime.text = duration
@@ -151,6 +192,17 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
             placeholder(R.drawable.default_album_cover)
             error(R.drawable.default_album_cover)
         }
+
+        val isShuffled = musicViewModel.getIsShuffled()
+        val repeatMode = musicViewModel.fetchRepeatMode()
+        val repeatDrawable = when (repeatMode) {
+            RepeatMode.OFF -> R.drawable.ic_music_repeat_disabled
+            RepeatMode.ONE -> R.drawable.ic_music_repeat_one
+            RepeatMode.ALL -> R.drawable.ic_music_repeat_enabled
+        }
+
+        ibRepeat.setImageResource(repeatDrawable)
+        ibShuffle.setImageResource(if (isShuffled) R.drawable.ic_music_shuffle_on else R.drawable.ic_music_shuffle_off)
 
         showMiniMusicFragment()
     }

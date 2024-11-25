@@ -60,6 +60,7 @@ class FilteredSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicA
 
     override fun onMusicClick(music: Music) {
         (activity as? ServiceStarter)?.startMusicService()
+        musicViewModel.selectAndPlayMusic(music)
 
         requireActivity().supportFragmentManager.beginTransaction()
             .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
