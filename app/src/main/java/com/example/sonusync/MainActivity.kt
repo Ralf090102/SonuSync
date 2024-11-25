@@ -98,7 +98,8 @@ class MainActivity : AppCompatActivity(), ServiceStarter {
 
     private fun checkPermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         } else {
             ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
         }
@@ -106,7 +107,10 @@ class MainActivity : AppCompatActivity(), ServiceStarter {
 
     private fun requestPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_MEDIA_AUDIO), 100)
+            ActivityCompat.requestPermissions(this, arrayOf(
+                android.Manifest.permission.READ_MEDIA_AUDIO,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ), 100)
         } else {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), 100)
         }
@@ -115,11 +119,11 @@ class MainActivity : AppCompatActivity(), ServiceStarter {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 musicViewModel.insertMusic()
                 ensembleViewModel.insertEnsembles()
             } else {
-                Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "All permissions are needed to access media files and show notifications", Toast.LENGTH_SHORT).show()
             }
         }
     }
