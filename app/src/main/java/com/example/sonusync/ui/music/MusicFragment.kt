@@ -54,7 +54,18 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     private val handler = Handler(Looper.getMainLooper())
     private val updateRunnable = object : Runnable {
         override fun run() {
-            //TODO()
+            val currentPosition = musicViewModel.getCurrentPlaybackPosition()
+            val duration = musicViewModel.getCurrentMediaDuration()
+
+            duration.let {
+                if (it > 0) {
+                    val progress = (currentPosition * 100 / it).toInt()
+
+                    sbPlayback.progress = progress
+                    tvCurrentTime.text = musicViewModel.formatDuration(currentPosition)
+                }
+            }
+
             handler.postDelayed(this, 1000)
         }
     }
@@ -90,19 +101,35 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
         sbPlayback.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    musicViewModel.onSeekBarChanged(progress)
+                    val newPosition = (progress / 100.0) * musicViewModel.duration
+                    tvCurrentTime.text = musicViewModel.formatDuration(newPosition.toLong())
                 }
             }
 
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                handler.removeCallbacks(updateRunnable)
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                seekBar?.let {
+                    val newPosition = (it.progress / 100.0) * musicViewModel.duration
+                    musicViewModel.onUiEvents(MusicViewModel.UIEvents.SeekTo(newPosition.toFloat()))
+
+                    handler.post(updateRunnable)
+                }
+            }
         })
 
         musicViewModel.ldIsPlaying.observe(viewLifecycleOwner) { isPlaying ->
-            Log.d("DebugLogs", "isPlaying: ${isPlaying}")
             fabMusic.setImageResource(
                 if (isPlaying) R.drawable.ic_music_pause_mini else R.drawable.ic_music_play_mini
             )
+
+            if (isPlaying) {
+                handler.post(updateRunnable)
+            } else {
+                handler.removeCallbacks(updateRunnable)
+            }
         }
 
         fabMusic.setOnClickListener {

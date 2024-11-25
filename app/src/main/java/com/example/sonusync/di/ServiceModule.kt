@@ -1,6 +1,7 @@
 package com.example.sonusync.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
@@ -58,6 +59,6 @@ object ServiceModule {
 
     @Provides
     @Singleton
-    fun provideServiceHandler(exoPlayer: ExoPlayer):
-            MusicServiceHandler = MusicServiceHandler(exoPlayer)
+    fun provideServiceHandler(exoPlayer: ExoPlayer, sharedPreferences: SharedPreferences):
+            MusicServiceHandler = MusicServiceHandler(exoPlayer, sharedPreferences)
 }

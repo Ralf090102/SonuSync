@@ -21,10 +21,9 @@ object ViewModelModule {
     fun provideMusicViewModel(
         musicRepository: MusicRepository,
         musicServiceHandler: MusicServiceHandler,
-        savedStateHandle: SavedStateHandle,
-        sharedPreferences: SharedPreferences
+        savedStateHandle: SavedStateHandle
     ): MusicViewModel {
-        return MusicViewModel(musicRepository, musicServiceHandler, savedStateHandle, sharedPreferences)
+        return MusicViewModel(musicRepository, musicServiceHandler, savedStateHandle)
     }
 
     @Provides

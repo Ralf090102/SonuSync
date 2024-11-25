@@ -34,14 +34,11 @@ import javax.inject.Inject
 class MusicViewModel  @Inject constructor(
     private val musicRepository: MusicRepository,
     private val musicServiceHandler: MusicServiceHandler,
-    private val savedStateHandle: SavedStateHandle,
-    private val preferences: SharedPreferences
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private companion object {
-        private const val KEY_REPEAT_MODE = "repeatMode"
-        private const val KEY_SHUFFLE = "isShuffleEnabled"
-        private const val KEY_SELECTED_INDEX = "selectedIndex"
+    companion object {
+        private const val PREF_CURRENT_MUSIC_INDEX = "pref_current_music_index"
     }
 
     var duration by savedStateHandle.saveable { mutableLongStateOf(0L) }
@@ -50,21 +47,6 @@ class MusicViewModel  @Inject constructor(
     var isPlaying by savedStateHandle.saveable { mutableStateOf(false) }
     var selectedMusic by savedStateHandle.saveable { mutableStateOf(savedStateHandle.get<Music?>("selectedMusic")) }
     var musicList by savedStateHandle.saveable { mutableStateOf(listOf<Music>()) }
-
-    var repeatMode: RepeatMode = RepeatMode.valueOf(preferences.getString(KEY_REPEAT_MODE, musicServiceHandler.getRepeatMode().name) ?: RepeatMode.OFF.name)
-        set(value) {
-            field = value
-            preferences.edit().putString(KEY_REPEAT_MODE, value.name).apply()
-        }
-
-    var isShuffleEnabled: Boolean = preferences.getBoolean(KEY_SHUFFLE, false)
-        set(value) {
-            field = value
-            preferences.edit().putBoolean(KEY_SHUFFLE, value).apply()
-        }
-
-    private val _selectedIndex = MutableLiveData<Int>().apply { value = preferences.getInt(KEY_SELECTED_INDEX, -1) }
-    val selectedIndex: LiveData<Int> get() = _selectedIndex
 
     private val _uiState: MutableStateFlow<UIState> = MutableStateFlow(UIState.Initial)
     val uiState: StateFlow<UIState> = _uiState.asStateFlow()
@@ -82,6 +64,8 @@ class MusicViewModel  @Inject constructor(
     val ldIsPlaying: LiveData<Boolean> = _ldIsPlaying
 
     private val _searchQuery = MutableLiveData("")
+
+    val selectedIndex: LiveData<Int> = musicServiceHandler.selectedIndex
 
     sealed class UIEvents {
         object PlayPause : UIEvents()
@@ -103,7 +87,6 @@ class MusicViewModel  @Inject constructor(
     }
 
     init {
-        _selectedIndex.value?.let { index -> selectedMusic = musicList.getOrNull(index) }
         insertMusic()
         observeMusicServiceState()
 
@@ -160,13 +143,14 @@ class MusicViewModel  @Inject constructor(
                     MusicServiceHandler.PlayerEvent.PlayPause
                 )
 
-                _ldIsPlaying.value = musicServiceHandler.getPlayback()
+                _ldIsPlaying.value = musicServiceHandler.isPlaying()
             }
 
             is UIEvents.SeekTo -> {
+                val seekPosition = (uiEvents.position).toLong()
                 musicServiceHandler.onPlayerEvents(
                     MusicServiceHandler.PlayerEvent.SeekTo,
-                    seekPosition = ((duration * uiEvents.position) / 100f).toLong()
+                    seekPosition = seekPosition
                 )
             }
 
@@ -188,19 +172,25 @@ class MusicViewModel  @Inject constructor(
         }
     }
 
+    fun getCurrentMediaDuration(): Long {
+        return musicServiceHandler.getCurrentMediaDuration()
+    }
+
+    fun getCurrentPlaybackPosition(): Long {
+        return musicServiceHandler.getCurrentPlaybackPosition()
+    }
+
     fun getIsShuffled(): Boolean {
-        return isShuffleEnabled
+        return musicServiceHandler.getShuffleMode()
     }
 
     fun fetchRepeatMode(): RepeatMode {
-        return repeatMode
+        return musicServiceHandler.getRepeatMode()
     }
 
     fun selectAndPlayMusic(music: Music) {
         val index = musicList.indexOfFirst { it.id == music.id }
         if (index != -1) {
-            _selectedIndex.value = index
-            preferences.edit().putInt(KEY_SELECTED_INDEX, index).apply()
             onUiEvents(UIEvents.SelectedAudioChange(index))
         }
     }
@@ -219,16 +209,6 @@ class MusicViewModel  @Inject constructor(
 
     fun clearFilteredMusicList() {
         _filteredMusicFlow.value = emptyList()
-    }
-
-    fun updatePlaybackPosition() {
-        val currentProgress = musicServiceHandler.getCurrentPlaybackPosition()
-        updateProgressState(currentProgress)
-    }
-
-    fun onSeekBarChanged(progressPercentage: Int) {
-        val positionMs = (progressPercentage / 100f) * duration
-        onUiEvents(UIEvents.SeekTo(positionMs))
     }
 
     fun releasePlayer() {
@@ -251,7 +231,7 @@ class MusicViewModel  @Inject constructor(
                     is MusicServiceHandler.MusicState.Progress -> updateProgressState(mediaState.progress)
                     is MusicServiceHandler.MusicState.Playing -> {
                         isPlaying = mediaState.isPlaying
-                        _ldIsPlaying.value = musicServiceHandler.getPlayback()
+                        _ldIsPlaying.value = musicServiceHandler.isPlaying()
                     }
                     is MusicServiceHandler.MusicState.CurrentPlaying -> {
                         if (mediaState.mediaItemIndex in musicList.indices) {
@@ -271,12 +251,12 @@ class MusicViewModel  @Inject constructor(
 
     private fun toggleShuffle() {
         musicServiceHandler.toggleShuffle()
-        isShuffleEnabled = musicServiceHandler.getShuffleMode()
+
     }
 
     private fun toggleRepeatMode() {
         musicServiceHandler.toggleRepeatMode()
-        repeatMode = musicServiceHandler.getRepeatMode()
+
     }
 
     private fun updateProgressState(currentProgress: Long) {
