@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Volume SeekBar Preference -->
+    <PreferenceCategory
+        android:title="Volume"
+        android:layout="@layout/preference_title">
+        <SeekBarPreference
+            android:key="volume"
+            android:summary="Adjust the playback volume"
+            android:defaultValue="5"
+            android:max="10"
+            android:min="1"
+            android:showSeekBarValue="true"
+            android:order="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>
