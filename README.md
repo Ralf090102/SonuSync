@@ -8,6 +8,7 @@ This is a  music player app built with Kotlin, using Android Studio and ExoPlaye
 - <b>Gestures</b> - drag-down to minimize the music player and click to expand
 - <b>MVVM Architecture</b> - utilizes Android's ViewModel and LiveData for dynamic events
 - <b>Dagger Hilt</b> - simplifies dependency injection with dagger hilt
+- <b>Preference Screen</b> - a layout that makes implementing settings easier
 
 ## Screenshots
 <img src="https://github.com/user-attachments/assets/cadbf1ec-b2f4-41cd-949d-490704ffb699" alt="image 1" width="250"/> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -21,6 +22,7 @@ This is a  music player app built with Kotlin, using Android Studio and ExoPlaye
 - [Android](https://developer.android.com/guide)
 - [ExoPlayer](https://developer.android.com/media/media3)
 - [Dagger Hilt](https://youtu.be/bbMsuI2p1DQ)
+- [Media Session Foreground Service](https://youtu.be/XrcmjIW45u8)
 
 ## Dependencies Used
 ![image](https://github.com/user-attachments/assets/54e02f3d-82c2-4461-b28c-e13b914acbb0)
