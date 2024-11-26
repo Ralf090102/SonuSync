@@ -36,11 +36,6 @@ class MusicViewModel  @Inject constructor(
     private val musicServiceHandler: MusicServiceHandler,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
-    companion object {
-        private const val PREF_CURRENT_MUSIC_INDEX = "pref_current_music_index"
-    }
-
     var duration by savedStateHandle.saveable { mutableLongStateOf(0L) }
     var progress by savedStateHandle.saveable { mutableFloatStateOf(0f) }
     var progressString by savedStateHandle.saveable { mutableStateOf("00:00") }
@@ -60,29 +55,27 @@ class MusicViewModel  @Inject constructor(
     private val _queryMusicList = MediatorLiveData<List<Music>>()
     val queryMusicList: LiveData<List<Music>> = _queryMusicList
 
-    private val _ldIsPlaying = MutableLiveData<Boolean>()
-    val ldIsPlaying: LiveData<Boolean> = _ldIsPlaying
-
     private val _searchQuery = MutableLiveData("")
 
     val selectedIndex: LiveData<Int> = musicServiceHandler.selectedIndex
+    val ldIsPlaying: LiveData<Boolean> = musicServiceHandler.isPlaying
 
     sealed class UIEvents {
-        object PlayPause : UIEvents()
-        object SeekToPrevious : UIEvents()
-        object SeekToNext : UIEvents()
-        object Backward : UIEvents()
-        object Forward : UIEvents()
-        object Shuffle : UIEvents()
-        object Repeat : UIEvents()
+        data object PlayPause : UIEvents()
+        data object SeekToPrevious : UIEvents()
+        data object SeekToNext : UIEvents()
+        data object Backward : UIEvents()
+        data object Forward : UIEvents()
+        data object Shuffle : UIEvents()
+        data object Repeat : UIEvents()
         data class SelectedAudioChange(val index: Int) : UIEvents()
         data class SeekTo(val position: Float) : UIEvents()
         data class UpdateProgress(val newProgress: Float) : UIEvents()
     }
 
     sealed class UIState {
-        object Initial : UIState()
-        object Ready : UIState()
+        data object Initial : UIState()
+        data object Ready : UIState()
         data class Error(val message: String) : UIState()
     }
 
@@ -142,8 +135,6 @@ class MusicViewModel  @Inject constructor(
                 musicServiceHandler.onPlayerEvents(
                     MusicServiceHandler.PlayerEvent.PlayPause
                 )
-
-                _ldIsPlaying.value = musicServiceHandler.isPlaying()
             }
 
             is UIEvents.SeekTo -> {
@@ -231,7 +222,6 @@ class MusicViewModel  @Inject constructor(
                     is MusicServiceHandler.MusicState.Progress -> updateProgressState(mediaState.progress)
                     is MusicServiceHandler.MusicState.Playing -> {
                         isPlaying = mediaState.isPlaying
-                        _ldIsPlaying.value = musicServiceHandler.isPlaying()
                     }
                     is MusicServiceHandler.MusicState.CurrentPlaying -> {
                         if (mediaState.mediaItemIndex in musicList.indices) {

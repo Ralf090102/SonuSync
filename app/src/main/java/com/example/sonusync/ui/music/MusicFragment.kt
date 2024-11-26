@@ -209,16 +209,42 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     }
 
     private fun setMusicFragmentUI(title: String?, artist: String?, duration: String?, albumArtUri: String?) {
-        tvMusicTitle.text = title
-        tvMusicArtist.text = artist
+        val isDefaultAlbumCover = (currentAlbumCover == null || currentAlbumCover == albumArtUri)
+        val isDefaultTitle = tvMusicTitle.text.isEmpty() || tvMusicTitle.text == "Unknown Title"
+        val isDefaultArtist = tvMusicArtist.text.isEmpty() || tvMusicArtist.text == "Unknown Artist"
+
+        if (!isDefaultAlbumCover) {
+            sivAlbumCover.animate().alpha(0f).setDuration(300).withEndAction {
+                updateAlbumCover(albumArtUri)
+                sivAlbumCover.animate().alpha(1f).setDuration(300).start()
+            }.start()
+        } else {
+            updateAlbumCover(albumArtUri)
+            sivAlbumCover.alpha = 1f
+        }
+
+        if (!isDefaultTitle) {
+            tvMusicTitle.animate().alpha(0f).setDuration(300).withEndAction {
+                tvMusicTitle.text = title
+                tvMusicTitle.animate().alpha(1f).setDuration(300).start()
+            }.start()
+        } else {
+            tvMusicTitle.text = title
+            tvMusicTitle.alpha = 1f
+        }
+
+        if (!isDefaultArtist) {
+            tvMusicArtist.animate().alpha(0f).setDuration(300).withEndAction {
+                tvMusicArtist.text = artist
+                tvMusicArtist.animate().alpha(1f).setDuration(300).start()
+            }.start()
+        } else {
+            tvMusicArtist.text = artist
+            tvMusicArtist.alpha = 1f
+        }
+
         tvTotalTime.text = duration
         currentAlbumCover = albumArtUri
-        val albumArt = Uri.parse(albumArtUri)
-
-        sivAlbumCover.load(albumArt) {
-            placeholder(R.drawable.default_album_cover)
-            error(R.drawable.default_album_cover)
-        }
 
         val isShuffled = musicViewModel.getIsShuffled()
         val repeatMode = musicViewModel.fetchRepeatMode()
@@ -232,6 +258,14 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
         ibShuffle.setImageResource(if (isShuffled) R.drawable.ic_music_shuffle_on else R.drawable.ic_music_shuffle_off)
 
         showMiniMusicFragment()
+    }
+
+    private fun updateAlbumCover(albumArtUri: String?) {
+        val albumArt = Uri.parse(albumArtUri)
+        sivAlbumCover.load(albumArt) {
+            placeholder(R.drawable.default_album_cover)
+            error(R.drawable.default_album_cover)
+        }
     }
 
     private fun hideMusicFragment() {
