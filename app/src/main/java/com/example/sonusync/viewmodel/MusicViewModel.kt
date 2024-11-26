@@ -159,6 +159,10 @@ class MusicViewModel  @Inject constructor(
         }
     }
 
+    fun getSelectedIndex(): Int? {
+        return selectedIndex.value
+    }
+
     fun getCurrentMediaDuration(): Long {
         duration = musicServiceHandler.getCurrentMediaDuration()
 

@@ -8,7 +8,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.media3.exoplayer.ExoPlayer
 import coil.load
 import com.example.sonusync.R
 import com.example.sonusync.viewmodel.MusicViewModel
@@ -49,6 +48,16 @@ class MiniMusicFragment : Fragment(R.layout.fragment_mini_music_player) {
         }
 
         observeMusicState()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        musicViewModel.getSelectedIndex()?.let { index ->
+            val music = musicViewModel.musicFlow.value.getOrNull(index)
+            music?.let {
+                updateMiniMusicUI(it.title, it.artist, it.albumArtUri)
+            }
+        }
     }
 
     private fun updateMiniMusicUI(title: String, artist: String, cover: String?) {

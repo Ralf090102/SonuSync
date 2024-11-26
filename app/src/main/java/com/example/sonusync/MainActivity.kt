@@ -14,6 +14,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.sonusync.service.MusicService
@@ -38,12 +40,12 @@ class MainActivity : AppCompatActivity(), ServiceStarter {
         enableEdgeToEdge()
 
         hideStatusBar()
-        if (!checkPermission()) {
-            requestPermission()
-        } else {
+        addLifecycleObserver()
+        if (checkPermission()) {
             musicViewModel.loadMusic()
             ensembleViewModel.loadEnsembles()
         }
+
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -82,6 +84,17 @@ class MainActivity : AppCompatActivity(), ServiceStarter {
         } else {
             window.insetsController?.hide(WindowInsetsCompat.Type.statusBars())
         }
+    }
+
+    private fun addLifecycleObserver() {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (!checkPermission()) {
+                    requestPermission()
+                }
+            }
+        }
+        lifecycle.addObserver(observer)
     }
 
     private fun startService() {

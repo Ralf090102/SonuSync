@@ -1,6 +1,7 @@
 package com.example.sonusync.service
 
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.MediaItem
@@ -68,9 +69,6 @@ class MusicServiceHandler @Inject constructor(
     init {
         exoPlayer.shuffleModeEnabled = sharedPreferences.getBoolean(PREF_SHUFFLE_STATE, false)
         exoPlayer.repeatMode = sharedPreferences.getInt(PREF_REPEAT_STATE, Player.REPEAT_MODE_OFF)
-
-        val savedMusicIndex = sharedPreferences.getInt(PREF_CURRENT_MUSIC_INDEX, 0)
-        _selectedIndex.value = savedMusicIndex
 
         exoPlayer.addListener(this)
     }
@@ -149,8 +147,6 @@ class MusicServiceHandler @Inject constructor(
                 if (!exoPlayer.isPlaying) {
                     exoPlayer.play()
                 }
-
-                _selectedIndex.value = nextIndex
             }
 
             PlayerEvent.SeekToPrevious -> {
@@ -164,8 +160,6 @@ class MusicServiceHandler @Inject constructor(
                 if (!exoPlayer.isPlaying) {
                     exoPlayer.play()
                 }
-
-                _selectedIndex.value = previousIndex
             }
 
             PlayerEvent.SelectedAudioChange -> {
@@ -183,7 +177,6 @@ class MusicServiceHandler @Inject constructor(
                         }
 
                         _musicState.value = MusicState.Playing(isPlaying = true)
-                        _selectedIndex.value = selectedAudioIndex
 
                         startProgressUpdate()
                     }
@@ -216,6 +209,8 @@ class MusicServiceHandler @Inject constructor(
                 Player.REPEAT_MODE_ALL -> _selectedIndex.value = exoPlayer.currentMediaItemIndex
                 Player.REPEAT_MODE_ONE -> return
             }
+        } else {
+            _selectedIndex.value = exoPlayer.currentMediaItemIndex
         }
     }
 

@@ -18,15 +18,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 private const val NOTIFICATION_ID = 111
-private const val NOTIFICATION_CHANNEL_NAME = "music notification channel 111"
+private const val NOTIFICATION_CHANNEL_NAME = "Music Playback"
 private const val NOTIFICATION_CHANNEL_ID = "music notification channel id 111"
 
 class MusicNotificationManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val exoPlayer: ExoPlayer,
 ) {
-    private val notificationManager: NotificationManagerCompat =
-        NotificationManagerCompat.from(context)
+    private val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
