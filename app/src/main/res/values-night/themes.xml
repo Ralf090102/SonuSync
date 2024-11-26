@@ -14,7 +14,7 @@
         <item name="bottomNavigationStyle">@style/bottomNavBar</item>
         <item name="imageButtonStyle">@style/customImageButton</item>
         <item name="floatingActionButtonStyle">@style/customFABPlayerButton</item>
-<!--        <item name="preferenceTheme">@style/AppTheme.PreferenceTheme</item>-->
+        <item name="preferenceTheme">@style/AppTheme.PreferenceTheme</item>
     </style>
 
     <!-- Custom Bottom Navigation Bar -->
@@ -47,11 +47,11 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-<!--    &lt;!&ndash; Preference Settings Theme &ndash;&gt;-->
-<!--    <style name="AppTheme.PreferenceTheme" parent="PreferenceThemeOverlay">-->
-<!--        <item name="android:colorAccent">@color/primary</item>-->
-<!--        <item name="android:progressTint">@color/primary</item>-->
-<!--        <item name="trackTint">@color/accent</item>-->
-<!--        <item name="thumbTint">@color/primary</item>-->
-<!--    </style>-->
+    <!-- Preference Settings Theme -->
+    <style name="AppTheme.PreferenceTheme" parent="PreferenceThemeOverlay">
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:progressTint">@color/primary</item>
+        <item name="trackTint">@color/accent</item>
+        <item name="thumbTint">@color/primary</item>
+    </style>
 </resources>

@@ -48,6 +48,9 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    // AndroidX Preference Library
+    implementation (libs.androidx.preference)
+
     //Fragment Container View
     implementation (libs.androidx.fragment)
     implementation (libs.androidx.navigation.fragment.ktx)
