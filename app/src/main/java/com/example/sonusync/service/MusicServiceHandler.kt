@@ -132,10 +132,6 @@ class MusicServiceHandler @Inject constructor(
         sharedPreferences.edit().putInt(PREF_REPEAT_STATE, newRepeatMode).apply()
     }
 
-    fun releasePlayer() {
-        exoPlayer.release()
-    }
-
     fun onPlayerEvents(
         playerEvent: PlayerEvent,
         selectedAudioIndex: Int = -1,

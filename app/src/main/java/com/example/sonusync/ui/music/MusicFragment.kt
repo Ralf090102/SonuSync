@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -25,7 +24,6 @@ import com.example.sonusync.viewmodel.MusicViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.imageview.ShapeableImageView
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class MusicFragment : Fragment(R.layout.fragment_music_player){
@@ -92,7 +90,7 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
         initializeViews(view)
 
         musicViewModel.selectedIndex.observe(viewLifecycleOwner) { index ->
-            val music = musicViewModel.musicList.getOrNull(index)
+            val music = musicViewModel.musicFlow.value.getOrNull(index)
             if (music != null) {
                 setMusicFragmentUI(music.title, music.artist, musicViewModel.formatDuration(music.duration), music.albumArtUri)
             }
@@ -187,11 +185,6 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     override fun onStop() {
         super.onStop()
         handler.removeCallbacks(updateRunnable)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        musicViewModel.releasePlayer()
     }
 
     private fun initializeViews(view: View){

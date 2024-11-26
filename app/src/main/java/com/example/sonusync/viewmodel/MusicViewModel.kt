@@ -1,7 +1,6 @@
 package com.example.sonusync.viewmodel
 
 import android.annotation.SuppressLint
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -26,7 +25,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,12 +39,11 @@ class MusicViewModel  @Inject constructor(
     var progressString by savedStateHandle.saveable { mutableStateOf("00:00") }
     var isPlaying by savedStateHandle.saveable { mutableStateOf(false) }
     var selectedMusic by savedStateHandle.saveable { mutableStateOf(savedStateHandle.get<Music?>("selectedMusic")) }
-    var musicList by savedStateHandle.saveable { mutableStateOf(listOf<Music>()) }
 
     private val _uiState: MutableStateFlow<UIState> = MutableStateFlow(UIState.Initial)
     val uiState: StateFlow<UIState> = _uiState.asStateFlow()
 
-    private val _musicFlow = MutableStateFlow(musicList)
+    private val _musicFlow = MutableStateFlow<List<Music>>(emptyList())
     val musicFlow: StateFlow<List<Music>> get() = _musicFlow
 
     private val _filteredMusicFlow = MutableStateFlow<List<Music>>(emptyList())
@@ -97,7 +94,6 @@ class MusicViewModel  @Inject constructor(
         viewModelScope.launch {
             try {
                 val musicData = musicRepository.getMusicFromStorage()
-                musicList = musicData.musicList
                 _musicFlow.value = musicData.musicList
                 loadMusic()
             } catch (e: Exception) {
@@ -107,7 +103,7 @@ class MusicViewModel  @Inject constructor(
     }
 
     fun loadMusic(){
-        musicList.map { music ->
+        _musicFlow.value.map { music ->
             MediaItem.Builder()
                 .setUri(music.uri)
                 .setMediaMetadata(
@@ -164,11 +160,15 @@ class MusicViewModel  @Inject constructor(
     }
 
     fun getCurrentMediaDuration(): Long {
-        return musicServiceHandler.getCurrentMediaDuration()
+        duration = musicServiceHandler.getCurrentMediaDuration()
+
+        return duration
     }
 
     fun getCurrentPlaybackPosition(): Long {
-        return musicServiceHandler.getCurrentPlaybackPosition()
+        progress = musicServiceHandler.getCurrentPlaybackPosition().toFloat()
+
+        return progress.toLong()
     }
 
     fun getIsShuffled(): Boolean {
@@ -180,7 +180,7 @@ class MusicViewModel  @Inject constructor(
     }
 
     fun selectAndPlayMusic(music: Music) {
-        val index = musicList.indexOfFirst { it.id == music.id }
+        val index = _musicFlow.value.indexOfFirst { it.id == music.id }
         if (index != -1) {
             onUiEvents(UIEvents.SelectedAudioChange(index))
         }
@@ -191,19 +191,15 @@ class MusicViewModel  @Inject constructor(
     }
 
     fun filterMusicByAlbum(albumName: String) {
-        _filteredMusicFlow.value = musicList.filter { it.album == albumName }
+        _filteredMusicFlow.value = _musicFlow.value.filter { it.album == albumName }
     }
 
     fun filterMusicByArtist(artistName: String) {
-        _filteredMusicFlow.value = musicList.filter { it.artist == artistName }
+        _filteredMusicFlow.value = _musicFlow.value.filter { it.artist == artistName }
     }
 
     fun clearFilteredMusicList() {
         _filteredMusicFlow.value = emptyList()
-    }
-
-    fun releasePlayer() {
-        musicServiceHandler.releasePlayer()
     }
 
     @SuppressLint("DefaultLocale")
@@ -224,8 +220,8 @@ class MusicViewModel  @Inject constructor(
                         isPlaying = mediaState.isPlaying
                     }
                     is MusicServiceHandler.MusicState.CurrentPlaying -> {
-                        if (mediaState.mediaItemIndex in musicList.indices) {
-                            selectedMusic = musicList[mediaState.mediaItemIndex]
+                        if (mediaState.mediaItemIndex in _musicFlow.value.indices) {
+                            selectedMusic = _musicFlow.value[mediaState.mediaItemIndex]
                         } else {
                             Log.e("MusicViewModel", "Invalid media index: ${mediaState.mediaItemIndex}")
                         }
@@ -257,9 +253,9 @@ class MusicViewModel  @Inject constructor(
     private fun filterMusicByQuery() {
         val query = _searchQuery.value ?: ""
         _queryMusicList.value = if (query.isBlank()) {
-            musicList
+            _musicFlow.value
         } else {
-            musicList.filter {
+            _musicFlow.value.filter {
                 it.title.contains(query, ignoreCase = true) ||
                         it.album.contains(query, ignoreCase = true) ||
                         it.artist.contains(query, ignoreCase = true)
