@@ -4,6 +4,7 @@ This is a  music player app built with Kotlin, using Android Studio and ExoPlaye
 ## Features & Techstack
 - <b>Repository</b> - fetches music from the device's local storage
 - <b>Room</b> - a local database that stores music; utilizes SQLite
+- <b>Media Session</b> - allows for a better foreground service and notification playback
 - <b>ExoPlayer</b> - provides smooth and efficient audio playback
 - <b>Gestures</b> - drag-down to minimize the music player and click to expand
 - <b>MVVM Architecture</b> - utilizes Android's ViewModel and LiveData for dynamic events
