@@ -11,10 +11,23 @@
             android:defaultValue="5"
             android:max="10"
             android:min="1"
-            android:showSeekBarValue="true"
             android:order="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="To Be Updated???"
+        android:layout="@layout/preference_title">
+        <Preference
+            android:summary="The dynamic playback based on the accelerometer would probably take me forever to do"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Music App"
+        android:layout="@layout/preference_title">
+        <Preference
+            android:summary="Was probably a bad idea to make a music app as my first big project but I'm happy with what I made B)"/>
     </PreferenceCategory>
 
 </PreferenceScreen>
