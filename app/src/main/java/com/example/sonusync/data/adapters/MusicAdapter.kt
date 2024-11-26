@@ -18,15 +18,14 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.sonusync.R
 import com.example.sonusync.data.model.Music
+import java.util.concurrent.TimeUnit
 
 class MusicAdapter(
     private val musicClickListener: MusicClickListener
 ) : ListAdapter<Music, MusicAdapter.MusicViewHolder>(MusicDiffCallback()) {
 
-    private var globalMusicList: List<Music> = emptyList()
-
     interface MusicClickListener {
-        fun onMusicClick(music: Music, globalIndex: Int)
+        fun onMusicClick(music: Music)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MusicViewHolder {
@@ -37,21 +36,7 @@ class MusicAdapter(
 
     override fun onBindViewHolder(holder: MusicViewHolder, position: Int) {
         val music = getItem(position)
-        val globalIndex = globalMusicList.indexOfFirst { it.id == music.id }
-
-        holder.bind(music, musicClickListener, globalIndex)
-    }
-
-    override fun getItemCount(): Int = currentList.size
-
-    fun submitFilteredList(filteredList: List<Music>) {
-        submitList(filteredList)
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    fun submitGlobalList(globalList: List<Music>) {
-        this.globalMusicList = globalList
-        notifyDataSetChanged()
+        holder.bind(music, musicClickListener)
     }
 
     class MusicViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -60,12 +45,12 @@ class MusicAdapter(
         private val durationTextView: TextView = itemView.findViewById(R.id.tvItemDuration)
         private val albumCoverImageView: ImageView = itemView.findViewById(R.id.ivItemCover)
 
-        fun bind(music: Music, musicClickListener: MusicClickListener, globalIndex: Int) {
+        fun bind(music: Music, musicClickListener: MusicClickListener) {
             titleTextView.text = music.title
             artistTextView.text = music.artist
             durationTextView.text = formatDuration(music.duration)
-            val albumArt = Uri.parse(music.albumArtUri)
 
+            val albumArt = Uri.parse(music.albumArtUri)
             albumCoverImageView.load(albumArt) {
                 placeholder(R.drawable.default_album_cover)
                 error(R.drawable.default_album_cover)
@@ -73,16 +58,17 @@ class MusicAdapter(
 
             itemView.setOnClickListener {
                 if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
-                    musicClickListener.onMusicClick(music, globalIndex)
+                    musicClickListener.onMusicClick(music)
                 }
             }
         }
 
         @SuppressLint("DefaultLocale")
         private fun formatDuration(duration: Long): String {
-            val minutes = (duration / 1000) / 60
+            val minute = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
             val seconds = (duration / 1000) % 60
-            return String.format("%d:%02d", minutes, seconds)
+
+            return String.format("%02d:%02d", minute, seconds)
         }
     }
 

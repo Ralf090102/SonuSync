@@ -4,6 +4,9 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.example.sonusync.R
@@ -19,6 +22,7 @@ import com.example.sonusync.viewmodel.MusicViewModel
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LibraryFragment : Fragment(R.layout.fragment_library){
@@ -68,7 +72,12 @@ class LibraryFragment : Fragment(R.layout.fragment_library){
             }
         })
 
-        musicViewModel.musicList.observe(viewLifecycleOwner) { musicList -> notifyMusicFragments(musicList) }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                musicViewModel.musicFlow.collect { musicList -> notifyMusicFragments(musicList) }
+            }
+        }
+
         ensembleViewModel.artists.observe(viewLifecycleOwner) { artists -> notifyArtistFragments(artists) }
         ensembleViewModel.albums.observe(viewLifecycleOwner) { albums -> notifyAlbumFragments(albums) }
         ensembleViewModel.playlists.observe(viewLifecycleOwner) { playlists -> notifyPlaylistFragments(playlists) }

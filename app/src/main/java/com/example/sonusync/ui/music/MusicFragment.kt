@@ -15,17 +15,12 @@ import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.OptIn
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
 import coil.load
 import com.example.sonusync.R
-import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.data.enums.RepeatMode
+import com.example.sonusync.viewmodel.MusicViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.imageview.ShapeableImageView
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,7 +33,6 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     private val musicViewModel: MusicViewModel by activityViewModels()
 
     private var currentToast: Toast? = null
-    private lateinit var exoPlayer: ExoPlayer
     private lateinit var tvMusicTitle: TextView
     private lateinit var tvMusicArtist: TextView
     private lateinit var tvTotalTime: TextView
@@ -58,11 +52,18 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     private val handler = Handler(Looper.getMainLooper())
     private val updateRunnable = object : Runnable {
         override fun run() {
-            if (exoPlayer.isPlaying) {
-                val currentPos = exoPlayer.currentPosition
-                tvCurrentTime.text = formatDuration(currentPos)
-                sbPlayback.progress = currentPos.toInt()
+            val currentPosition = musicViewModel.getCurrentPlaybackPosition()
+            val duration = musicViewModel.getCurrentMediaDuration()
+
+            duration.let {
+                if (it > 0) {
+                    val progress = (currentPosition * 100 / it).toInt()
+
+                    sbPlayback.progress = progress
+                    tvCurrentTime.text = musicViewModel.formatDuration(currentPosition)
+                }
             }
+
             handler.postDelayed(this, 1000)
         }
     }
@@ -88,30 +89,92 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
 
         initializeViews(view)
 
-        musicViewModel.isShuffleEnabled.observe(viewLifecycleOwner) { isShuffled ->
-            ibShuffle.setImageResource(if (isShuffled) R.drawable.ic_music_shuffle_on else R.drawable.ic_music_shuffle_off)
-        }
-
-        musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-            musicViewModel.currentMusicIndex.observe(viewLifecycleOwner) { index ->
-                if (index != null && index < musicList.size) {
-                    val music = musicList[index]
-                    setupExoPlayer(music.uri)
-                    setMusicFragmentUI(music.title, music.artist, formatDuration(music.duration), music.albumArtUri)
-                    setPlayerListeners(music.duration)
-                }
+        musicViewModel.selectedIndex.observe(viewLifecycleOwner) { index ->
+            val music = musicViewModel.musicFlow.value.getOrNull(index)
+            if (music != null) {
+                setMusicFragmentUI(music.title, music.artist, musicViewModel.formatDuration(music.duration), music.albumArtUri)
             }
         }
 
-        musicViewModel.repeatMode.observe(viewLifecycleOwner) { mode ->
-            ibRepeat.setImageResource(
-                when (mode) {
-                    RepeatMode.OFF -> R.drawable.ic_music_repeat_disabled
-                    RepeatMode.ALL -> R.drawable.ic_music_repeat_enabled
-                    RepeatMode.ONE -> R.drawable.ic_music_repeat_one
-                    null -> TODO()
+        sbPlayback.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    val newPosition = (progress / 100.0) * musicViewModel.duration
+                    tvCurrentTime.text = musicViewModel.formatDuration(newPosition.toLong())
                 }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                handler.removeCallbacks(updateRunnable)
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                seekBar?.let {
+                    val newPosition = (it.progress / 100.0) * musicViewModel.duration
+                    musicViewModel.onUiEvents(MusicViewModel.UIEvents.SeekTo(newPosition.toFloat()))
+
+                    handler.post(updateRunnable)
+                }
+            }
+        })
+
+        musicViewModel.ldIsPlaying.observe(viewLifecycleOwner) { isPlaying ->
+            fabMusic.setImageResource(
+                if (isPlaying) R.drawable.ic_music_pause_mini else R.drawable.ic_music_play_mini
             )
+
+            if (isPlaying) {
+                handler.post(updateRunnable)
+            } else {
+                handler.removeCallbacks(updateRunnable)
+            }
+        }
+
+        fabMusic.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.PlayPause)
+        }
+
+        ibPrev.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.SeekToPrevious)
+        }
+
+        ibNext.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.SeekToNext)
+        }
+
+        ibShuffle.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.Shuffle)
+            val isShuffled = musicViewModel.getIsShuffled()
+
+            ibShuffle.setImageResource(
+                if (isShuffled) R.drawable.ic_music_shuffle_on else R.drawable.ic_music_shuffle_off
+            )
+
+            currentToast?.cancel()
+            currentToast = Toast.makeText(context,
+                if (isShuffled) "Shuffle On"
+                else "Shuffle Off",
+                Toast.LENGTH_SHORT).apply { show() }
+        }
+
+        ibRepeat.setOnClickListener {
+            musicViewModel.onUiEvents(MusicViewModel.UIEvents.Repeat)
+            val repeatMode = musicViewModel.fetchRepeatMode()
+
+            val repeatDrawable = when (repeatMode) {
+                RepeatMode.OFF -> R.drawable.ic_music_repeat_disabled
+                RepeatMode.ONE -> R.drawable.ic_music_repeat_one
+                RepeatMode.ALL -> R.drawable.ic_music_repeat_enabled
+            }
+
+            ibRepeat.setImageResource(repeatDrawable)
+
+            currentToast?.cancel()
+            currentToast = Toast.makeText(
+                context,
+                "Repeat Mode: $repeatMode",
+                Toast.LENGTH_SHORT
+            ).apply { show() }
         }
 
         view.setOnTouchListener { _, event ->
@@ -122,14 +185,6 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
     override fun onStop() {
         super.onStop()
         handler.removeCallbacks(updateRunnable)
-        exoPlayer.pause()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (::exoPlayer.isInitialized) {
-            exoPlayer.release()
-        }
     }
 
     private fun initializeViews(view: View){
@@ -146,127 +201,64 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
         ibRepeat = view.findViewById(R.id.ibRepeat)
     }
 
-    private fun setMusicFragmentUI(title: String?, artist: String?, duration: String?, albumArtUri: String?){
-        tvMusicTitle.text = title
-        tvMusicArtist.text = artist
+    private fun setMusicFragmentUI(title: String?, artist: String?, duration: String?, albumArtUri: String?) {
+        val isDefaultAlbumCover = (currentAlbumCover == null || currentAlbumCover == albumArtUri)
+        val isDefaultTitle = tvMusicTitle.text.isEmpty() || tvMusicTitle.text == "Unknown Title"
+        val isDefaultArtist = tvMusicArtist.text.isEmpty() || tvMusicArtist.text == "Unknown Artist"
+
+        if (!isDefaultAlbumCover) {
+            sivAlbumCover.animate().alpha(0f).setDuration(300).withEndAction {
+                updateAlbumCover(albumArtUri)
+                sivAlbumCover.animate().alpha(1f).setDuration(300).start()
+            }.start()
+        } else {
+            updateAlbumCover(albumArtUri)
+            sivAlbumCover.alpha = 1f
+        }
+
+        if (!isDefaultTitle) {
+            tvMusicTitle.animate().alpha(0f).setDuration(300).withEndAction {
+                tvMusicTitle.text = title
+                tvMusicTitle.animate().alpha(1f).setDuration(300).start()
+            }.start()
+        } else {
+            tvMusicTitle.text = title
+            tvMusicTitle.alpha = 1f
+        }
+
+        if (!isDefaultArtist) {
+            tvMusicArtist.animate().alpha(0f).setDuration(300).withEndAction {
+                tvMusicArtist.text = artist
+                tvMusicArtist.animate().alpha(1f).setDuration(300).start()
+            }.start()
+        } else {
+            tvMusicArtist.text = artist
+            tvMusicArtist.alpha = 1f
+        }
+
         tvTotalTime.text = duration
         currentAlbumCover = albumArtUri
-        val albumArt = Uri.parse(albumArtUri)
 
-        sivAlbumCover.load(albumArt) {
-            placeholder(R.drawable.default_album_cover)
-            error(R.drawable.default_album_cover)
+        val isShuffled = musicViewModel.getIsShuffled()
+        val repeatMode = musicViewModel.fetchRepeatMode()
+        val repeatDrawable = when (repeatMode) {
+            RepeatMode.OFF -> R.drawable.ic_music_repeat_disabled
+            RepeatMode.ONE -> R.drawable.ic_music_repeat_one
+            RepeatMode.ALL -> R.drawable.ic_music_repeat_enabled
         }
+
+        ibRepeat.setImageResource(repeatDrawable)
+        ibShuffle.setImageResource(if (isShuffled) R.drawable.ic_music_shuffle_on else R.drawable.ic_music_shuffle_off)
 
         showMiniMusicFragment()
     }
 
-    private fun setupExoPlayer(musicUri: String?) {
-        if (!::exoPlayer.isInitialized) {
-            exoPlayer = ExoPlayer.Builder(requireContext()).build()
+    private fun updateAlbumCover(albumArtUri: String?) {
+        val albumArt = Uri.parse(albumArtUri)
+        sivAlbumCover.load(albumArt) {
+            placeholder(R.drawable.default_album_cover)
+            error(R.drawable.default_album_cover)
         }
-
-        val mediaItem = MediaItem.fromUri(Uri.parse(musicUri))
-        exoPlayer.setMediaItem(mediaItem)
-        exoPlayer.prepare()
-        exoPlayer.play()
-    }
-
-    @OptIn(UnstableApi::class)
-    private fun setPlayerListeners(duration: Long?) {
-        exoPlayer.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                fabMusic.setImageResource(if (isPlaying) R.drawable.ic_music_pause else R.drawable.ic_music_play)
-            }
-        })
-
-        fabMusic.setOnClickListener {
-            if (exoPlayer.isPlaying)
-                exoPlayer.pause()
-            else
-                exoPlayer.play()
-
-            miniMusicFragment.updatePlayPauseIcon()
-        }
-
-        ibNext.setOnClickListener {
-            exoPlayer.pause()
-            musicViewModel.playNext()
-        }
-
-        ibPrev.setOnClickListener {
-            exoPlayer.pause()
-            musicViewModel.playPrevious()
-        }
-
-        ibShuffle.setOnClickListener {
-            musicViewModel.toggleShuffle()
-
-            currentToast?.cancel()
-            currentToast = Toast.makeText(context,
-                if (musicViewModel.isShuffleEnabled.value == true) "Shuffle On"
-                else "Shuffle Off",
-                Toast.LENGTH_SHORT).apply { show() }
-        }
-
-        ibRepeat.setOnClickListener {
-            musicViewModel.toggleRepeat()
-
-            currentToast?.cancel()
-            currentToast = Toast.makeText(context,
-                "Repeat Mode: ${musicViewModel.repeatMode.value}",
-                Toast.LENGTH_SHORT).apply { show() }        }
-
-        sbPlayback.max = duration?.toInt() ?: 0
-
-        exoPlayer.addListener(object : Player.Listener {
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_READY) {
-                    tvTotalTime.text = formatDuration(exoPlayer.duration)
-                    sbPlayback.max = exoPlayer.duration.toInt()
-                    handler.post(updateRunnable)
-                }
-            }
-
-            @Deprecated("Deprecated in Java")
-            override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                if (playbackState == Player.STATE_ENDED) {
-                    when (musicViewModel.repeatMode.value) {
-                        RepeatMode.ALL -> musicViewModel.playNext()
-                        RepeatMode.ONE -> exoPlayer.seekTo(0)
-                        RepeatMode.OFF -> {
-                            exoPlayer.seekTo(0)
-                            exoPlayer.pause()
-                        }
-                        null -> TODO()
-                    }
-                }
-            }
-
-            @Deprecated("Deprecated in Java")
-            override fun onPositionDiscontinuity(reason: Int) {
-                sbPlayback.progress = exoPlayer.currentPosition.toInt()
-                tvCurrentTime.text = formatDuration(exoPlayer.currentPosition)
-            }
-        })
-
-        sbPlayback.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    exoPlayer.seekTo(progress.toLong())
-                    tvCurrentTime.text = formatDuration(progress.toLong())
-                }
-            }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-    }
-
-    @SuppressLint("DefaultLocale")
-    private fun formatDuration(duration: Long): String {
-        val minutes = (duration / 1000) / 60
-        val seconds = (duration / 1000) % 60
-        return String.format("%d:%02d", minutes, seconds)
     }
 
     private fun hideMusicFragment() {
@@ -301,8 +293,6 @@ class MusicFragment : Fragment(R.layout.fragment_music_player){
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.flMiniMusic, miniMusicFragment, "Library")
             .commit()
-
-        miniMusicFragment.setMiniExoPlayer(exoPlayer)
     }
 
     private fun showMusicFragment() {

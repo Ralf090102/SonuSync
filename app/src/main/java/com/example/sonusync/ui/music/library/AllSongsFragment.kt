@@ -6,15 +6,20 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
 import com.example.sonusync.data.model.Music
+import com.example.sonusync.service.ServiceStarter
 import com.example.sonusync.ui.music.MusicFragment
 import com.example.sonusync.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapter.MusicClickListener {
@@ -35,15 +40,18 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
             recyclerView.adapter = this
         }
 
-        musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-            musicAdapter.submitGlobalList(musicList)
-            updateMusic(musicList)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                musicViewModel.musicFlow.collect { musicList ->
+                    musicAdapter.submitList(musicList)
+                }
+            }
         }
     }
 
-    override fun onMusicClick(music: Music, globalIndex: Int) {
-        musicViewModel.selectMusicAtIndex(globalIndex)
-
+    override fun onMusicClick(music: Music) {
+        (activity as? ServiceStarter)?.startMusicService()
+        musicViewModel.selectAndPlayMusic(music)
         val fragmentTransaction = requireActivity().supportFragmentManager.beginTransaction()
 
         fragmentTransaction.setCustomAnimations(
@@ -61,12 +69,6 @@ class AllSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapte
         view?.findViewById<RecyclerView>(R.id.rvAllSongs)?.layoutManager?.let { layoutManager ->
             recyclerViewState = layoutManager.onSaveInstanceState()
         }
-    }
-
-    private fun observeViewModel() {
-        musicViewModel.musicList.observe(viewLifecycleOwner, Observer { musicList ->
-            updateMusic(musicList)
-        })
     }
 
     fun updateMusic(musicList: List<Music>) {
