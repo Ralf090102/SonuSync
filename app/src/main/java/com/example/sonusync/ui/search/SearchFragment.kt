@@ -84,6 +84,8 @@ class SearchFragment : Fragment(R.layout.fragment_search), MusicAdapter.MusicCli
         fragmentTransaction.replace(R.id.flMusic, MusicFragment())
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
+
+        view?.findViewById<EditText>(R.id.etSearch)?.setText("")
     }
 
     private fun observeFilteredMusic() {

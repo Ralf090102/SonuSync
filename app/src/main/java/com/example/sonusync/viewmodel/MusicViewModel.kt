@@ -188,6 +188,8 @@ class MusicViewModel  @Inject constructor(
         if (index != -1) {
             onUiEvents(UIEvents.SelectedAudioChange(index))
         }
+
+        _queryMusicList.value = _musicFlow.value
     }
 
     fun setSearchQuery(query: String) {
@@ -195,15 +197,24 @@ class MusicViewModel  @Inject constructor(
     }
 
     fun filterMusicByAlbum(albumName: String) {
-        _filteredMusicFlow.value = _musicFlow.value.filter { it.album == albumName }
+        val filteredMusic = _musicFlow.value.filter { it.album == albumName }
+        _filteredMusicFlow.value = filteredMusic
+
+        val indices = filteredMusic.map { _musicFlow.value.indexOf(it) }
+        musicServiceHandler.setFilteredMusicIndices(indices)
     }
 
     fun filterMusicByArtist(artistName: String) {
-        _filteredMusicFlow.value = _musicFlow.value.filter { it.artist == artistName }
+        val filteredMusic = _musicFlow.value.filter { it.artist == artistName }
+        _filteredMusicFlow.value = filteredMusic
+
+        val indices = filteredMusic.map { _musicFlow.value.indexOf(it) }
+        musicServiceHandler.setFilteredMusicIndices(indices)
     }
 
     fun clearFilteredMusicList() {
         _filteredMusicFlow.value = emptyList()
+        musicServiceHandler.setFilteredMusicIndices(emptyList())
     }
 
     @SuppressLint("DefaultLocale")

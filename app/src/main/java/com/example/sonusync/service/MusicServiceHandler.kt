@@ -1,7 +1,6 @@
 package com.example.sonusync.service
 
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.MediaItem
@@ -40,6 +39,8 @@ class MusicServiceHandler @Inject constructor(
     private val _isPlaying = MutableLiveData<Boolean>()
     val isPlaying: LiveData<Boolean> = _isPlaying
 
+    private var filteredMusicIndices: List<Int> = emptyList()
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var job: Job? = null
 
@@ -76,6 +77,10 @@ class MusicServiceHandler @Inject constructor(
     fun addMediaItem(mediaItem: MediaItem) {
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
+    }
+
+    fun setFilteredMusicIndices(indices: List<Int>) {
+        filteredMusicIndices = indices
     }
 
     fun setMediaItemList(mediaItems: List<MediaItem>) {
@@ -137,28 +142,53 @@ class MusicServiceHandler @Inject constructor(
     ) {
         when (playerEvent) {
             PlayerEvent.SeekToNext -> {
-                val nextIndex = if (exoPlayer.hasNextMediaItem()) {
-                    exoPlayer.nextMediaItemIndex
+                if (filteredMusicIndices.isNotEmpty()) {
+                    val currentIndex = exoPlayer.currentMediaItemIndex
+                    val nextIndex = if (exoPlayer.shuffleModeEnabled) {
+                        filteredMusicIndices.random()
+                    } else {
+                        filteredMusicIndices.firstOrNull { it > currentIndex } ?: filteredMusicIndices.first()
+                    }
+
+                    exoPlayer.seekToDefaultPosition(nextIndex)
+                    exoPlayer.playWhenReady = true
+                    if (!exoPlayer.isPlaying) {
+                        exoPlayer.play()
+                    }
                 } else {
-                    0
-                }
-                exoPlayer.seekToDefaultPosition(nextIndex)
-                exoPlayer.playWhenReady = true
-                if (!exoPlayer.isPlaying) {
-                    exoPlayer.play()
+                    if (exoPlayer.hasNextMediaItem()) {
+                        exoPlayer.seekToDefaultPosition(exoPlayer.nextMediaItemIndex)
+                        exoPlayer.playWhenReady = true
+                        if (!exoPlayer.isPlaying) {
+                            exoPlayer.play()
+                        }
+                    }
                 }
             }
 
             PlayerEvent.SeekToPrevious -> {
-                val previousIndex = if (exoPlayer.previousMediaItemIndex >= 0) {
-                    exoPlayer.previousMediaItemIndex
+                if (filteredMusicIndices.isNotEmpty()) {
+                    val currentIndex = exoPlayer.currentMediaItemIndex
+                    val previousIndex = if (exoPlayer.shuffleModeEnabled) {
+                        filteredMusicIndices.random()
+                    } else {
+                        filteredMusicIndices.lastOrNull { it < currentIndex } ?: filteredMusicIndices.last()
+                    }
+
+                    exoPlayer.seekToDefaultPosition(previousIndex)
+                    exoPlayer.playWhenReady = true
+
+                    if (!exoPlayer.isPlaying) {
+                        exoPlayer.play()
+                    }
                 } else {
-                    exoPlayer.mediaItemCount - 1
-                }
-                exoPlayer.seekToDefaultPosition(previousIndex)
-                exoPlayer.playWhenReady = true
-                if (!exoPlayer.isPlaying) {
-                    exoPlayer.play()
+                    if (exoPlayer.previousMediaItemIndex >= 0) {
+                        exoPlayer.seekToDefaultPosition(exoPlayer.previousMediaItemIndex)
+                        exoPlayer.playWhenReady = true
+                        if (!exoPlayer.isPlaying) {
+                            exoPlayer.play()
+                        }
+                    }
                 }
             }
 
