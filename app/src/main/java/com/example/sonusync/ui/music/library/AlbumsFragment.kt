@@ -14,7 +14,6 @@ import com.example.sonusync.R
 import com.example.sonusync.data.adapters.EnsembleAdapter
 import com.example.sonusync.data.model.Album
 import com.example.sonusync.data.model.Ensemble
-import com.example.sonusync.ui.music.LibraryFragment
 import com.example.sonusync.viewmodel.EnsembleViewModel
 import dagger.hilt.android.AndroidEntryPoint
 

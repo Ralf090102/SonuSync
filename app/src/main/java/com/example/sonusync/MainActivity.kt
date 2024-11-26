@@ -13,21 +13,25 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.example.sonusync.service.MusicService
+import com.example.sonusync.service.ServiceStarter
 import com.example.sonusync.viewmodel.MusicViewModel
 import com.example.sonusync.ui.settings.SettingsActivity
 import com.example.sonusync.viewmodel.EnsembleViewModel
-import com.example.sonusync.viewmodel.SearchViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), ServiceStarter {
 
     private val musicViewModel: MusicViewModel by viewModels()
-    private val searchViewModel: SearchViewModel by viewModels()
     private val ensembleViewModel: EnsembleViewModel by viewModels()
+
+    private var isServiceRunning = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,13 +39,12 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         hideStatusBar()
-        if (!checkPermission()) {
-            requestPermission()
-        } else {
+        addLifecycleObserver()
+        if (checkPermission()) {
             musicViewModel.loadMusic()
-            searchViewModel.loadMusic()
             ensembleViewModel.loadEnsembles()
         }
+
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -70,6 +73,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun startMusicService() {
+        startService()
+    }
 
     private fun hideStatusBar() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
@@ -79,9 +85,33 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun addLifecycleObserver() {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (!checkPermission()) {
+                    requestPermission()
+                }
+            }
+        }
+        lifecycle.addObserver(observer)
+    }
+
+    private fun startService() {
+        if (!isServiceRunning) {
+            val intent = Intent(this, MusicService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            isServiceRunning = true
+        }
+    }
+
     private fun checkPermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         } else {
             ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
         }
@@ -89,7 +119,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_MEDIA_AUDIO), 100)
+            ActivityCompat.requestPermissions(this, arrayOf(
+                android.Manifest.permission.READ_MEDIA_AUDIO,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ), 100)
         } else {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), 100)
         }
@@ -98,12 +131,11 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 musicViewModel.insertMusic()
-                searchViewModel.insertMusic()
                 ensembleViewModel.insertEnsembles()
             } else {
-                Toast.makeText(this, "Permission is needed to access media files", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "All permissions are needed to access media files and show notifications", Toast.LENGTH_SHORT).show()
             }
         }
     }

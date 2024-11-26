@@ -6,14 +6,19 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sonusync.R
 import com.example.sonusync.data.adapters.MusicAdapter
 import com.example.sonusync.data.model.Music
+import com.example.sonusync.service.ServiceStarter
 import com.example.sonusync.ui.music.MusicFragment
 import com.example.sonusync.viewmodel.MusicViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class FilteredSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicAdapter.MusicClickListener {
@@ -39,10 +44,6 @@ class FilteredSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicA
             recyclerView.adapter = this
         }
 
-        musicViewModel.musicList.observe(viewLifecycleOwner) { musicList ->
-            musicAdapter.submitGlobalList(musicList)
-        }
-
         if (albumName != null || artistName != null) {
             observeFilteredMusic()
 
@@ -57,8 +58,9 @@ class FilteredSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicA
         }
     }
 
-    override fun onMusicClick(music: Music, globalIndex: Int) {
-        musicViewModel.selectMusicAtIndex(globalIndex)
+    override fun onMusicClick(music: Music) {
+        (activity as? ServiceStarter)?.startMusicService()
+        musicViewModel.selectAndPlayMusic(music)
 
         requireActivity().supportFragmentManager.beginTransaction()
             .setCustomAnimations(R.anim.fade_in, R.anim.fade_out)
@@ -69,8 +71,7 @@ class FilteredSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicA
 
     override fun onPause() {
         super.onPause()
-        recyclerViewState = view?.findViewById<RecyclerView>(R.id.rvAllSongs)
-            ?.layoutManager?.onSaveInstanceState()
+        recyclerViewState = view?.findViewById<RecyclerView>(R.id.rvAllSongs)?.layoutManager?.onSaveInstanceState()
     }
 
     override fun onDestroyView() {
@@ -79,12 +80,12 @@ class FilteredSongsFragment : Fragment(R.layout.fragment_music_recycler), MusicA
     }
 
     private fun observeFilteredMusic() {
-        musicViewModel.filteredMusicList.observe(viewLifecycleOwner) { filteredSongs ->
-            updateMusic(filteredSongs)
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                musicViewModel.filteredMusicFlow.collect { filteredSongs ->
+                    musicAdapter.submitList(filteredSongs)
+                }
+            }
         }
-    }
-
-    fun updateMusic(musicList: List<Music>) {
-        musicAdapter.submitList(musicList)
     }
 }

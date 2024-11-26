@@ -48,16 +48,21 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    // AndroidX Preference Library
+    implementation (libs.androidx.preference)
+
     //Fragment Container View
     implementation (libs.androidx.fragment)
     implementation (libs.androidx.navigation.fragment.ktx)
     implementation (libs.androidx.navigation.ui.ktx)
 
     //ExoPlayer & Media3
+    implementation(libs.androidx.media3.datasource.okhttp)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.legacy.support.v4)
 
     //Coil
     implementation(libs.coil)
