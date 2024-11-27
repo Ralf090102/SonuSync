@@ -11,12 +11,22 @@ This is a  music player app built with Kotlin, using Android Studio and ExoPlaye
 - <b>Dagger Hilt</b> - simplifies dependency injection with dagger hilt
 - <b>Preference Screen</b> - a layout that makes implementing settings easier
 
-## Screenshots
-<img src="https://github.com/user-attachments/assets/cadbf1ec-b2f4-41cd-949d-490704ffb699" alt="image 1" width="250"/> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="https://github.com/user-attachments/assets/77ff5191-3544-4748-a025-0d41b9fd8c53" alt="image 2" width="250"/> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="https://github.com/user-attachments/assets/0fcd9989-7f17-46e7-88c6-70eaeb7305d8" alt="image 3" width="250"/> 
+## SonuSync Demo
 
-## [Short Demo](https://github.com/user-attachments/assets/44acf043-bd8e-48b1-821d-25a537b4a1ea)
+## <div align="center"><p>[Short Demo](https://github.com/user-attachments/assets/6480b98e-f66e-432a-be7a-9f8f5fa0b74b)</p></div>
+
+## Screenshots
+<div style="text-align: center;">
+    <img src="https://github.com/user-attachments/assets/cf227c74-3fee-4bf0-8745-73ae250ad1d6" alt="SonuSync_sc_1" margin: 10px; width="250"">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <img src="https://github.com/user-attachments/assets/646e9e10-666d-4c53-9ca6-b0f202122680" alt="SonuSync_sc_2" margin: 10px; width="250"">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <img src="https://github.com/user-attachments/assets/d0e12a63-94f5-40e6-82b2-3f77f293b3f1" alt="SonuSync_sc_3" margin: 10px; width="250"">
+    <br><br>
+    <img src="https://github.com/user-attachments/assets/ef8ef6b1-85e6-40d8-829e-c5e68b7fd364" alt="SonuSync_sc_4" margin: 10px; width="250"">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <img src="https://github.com/user-attachments/assets/4d1ca01e-b3a8-46d0-b3fd-05fe51d3e4a3" alt="SonuSync_sc_5" margin: 10px; width="250"">
+</div>
 
 ## Sources
 - [Philipp Lackner](https://www.youtube.com/@PhilippLackner/featured)
