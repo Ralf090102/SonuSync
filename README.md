@@ -18,13 +18,13 @@ This is a  music player app built with Kotlin, using Android Studio and ExoPlaye
 ## Screenshots
 <div style="text-align: center;">
     <img src="https://github.com/user-attachments/assets/cf227c74-3fee-4bf0-8745-73ae250ad1d6" alt="SonuSync_sc_1" margin: 10px; width="250"">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <img src="https://github.com/user-attachments/assets/646e9e10-666d-4c53-9ca6-b0f202122680" alt="SonuSync_sc_2" margin: 10px; width="250"">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <img src="https://github.com/user-attachments/assets/d0e12a63-94f5-40e6-82b2-3f77f293b3f1" alt="SonuSync_sc_3" margin: 10px; width="250"">
     <br><br>
     <img src="https://github.com/user-attachments/assets/ef8ef6b1-85e6-40d8-829e-c5e68b7fd364" alt="SonuSync_sc_4" margin: 10px; width="250"">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <img src="https://github.com/user-attachments/assets/4d1ca01e-b3a8-46d0-b3fd-05fe51d3e4a3" alt="SonuSync_sc_5" margin: 10px; width="250"">
 </div>
 
